@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from app.core.database import get_db
 from app.models.domain import Restaurant, Product
+import uuid
+import shutil
+import os
 
 router = APIRouter(prefix="/api/restaurants", tags=["Restaurants"])
 
@@ -93,11 +96,6 @@ async def get_restaurant_products(restaurant_id: str, db: AsyncSession = Depends
         }
         for p in products
     ]
-
-from fastapi import UploadFile, File, Form, HTTPException
-import uuid
-import shutil
-import os
 
 @router.post("/{restaurant_id}/products")
 async def create_product(
