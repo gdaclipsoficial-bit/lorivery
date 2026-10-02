@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Centro de Mando - Lorica Delivery</title>
+    <!-- Usamos Bootstrap por CDN para maquetar rápido -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .card-img-top {
+            height: 350px;
+            object-fit: contain;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">⚡ Radar de Despachos</span>
+            <span class="navbar-text text-white">
+                Administrador Central
+            </span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h3 class="mb-4">Pagos Pendientes de Nequi/Bancolombia</h3>
+        
+        <div class="row" id="orders-container">
+            {% if orders %}
+                {% for order in orders %}
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <img src="{{ order.payment_proof_url }}" class="card-img-top p-2" alt="Comprobante">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-truncate" title="{{ order.id }}">Orden <small class="text-muted">{{ order.id.split('-')[0] }}</small></h5>
+                            <p class="card-text text-muted mb-2">Cliente: {{ order.client_id }}</p>
+                            <p class="card-text fw-bold mb-4">Lat: {{ order.delivery_lat | round(4) }} | Lng: {{ order.delivery_lng | round(4) }}</p>
+                            
+                            <div class="mt-auto">
+                                <button onclick="approveOrder('{{ order.id }}')" class="btn btn-success w-100 fw-bold py-2 shadow-sm">
+                                    ✅ APROBAR Y DESPACHAR
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center py-5 text-muted">
+                    <h4 class="fw-light">No hay órdenes pendientes.</h4>
+                    <p>Esperando a que entren pedidos...</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- ====== SECCIÓN DE REPARTIDORES PENDIENTES ====== -->
+        <hr class="my-5">
+        <h3 class="mb-4">👤 Repartidores Pendientes de Aprobación</h3>
+        
+        <div class="row" id="couriers-container">
+            {% if pending_couriers %}
+                {% for courier in pending_couriers %}
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-warning bg-opacity-25 fw-bold">
+                            ⏳ {{ courier.name }} — Cédula: {{ courier.national_id or 'No registrada' }}
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-1"><strong>Email:</strong> {{ courier.email }}</p>
+                            <p class="mb-1"><strong>Teléfono:</strong> {{ courier.phone_number or 'No registrado' }}</p>
+                            <p class="mb-3"><strong>Vehículo:</strong> {{ 'Motocicleta' if courier.vehicle_type == 'MOTORCYCLE' else 'Bicicleta' }}</p>
+                            
+                            <div class="row g-2 mb-3">
+                                <div class="col-4 text-center">
+                                    <small class="text-muted d-block mb-1">Cédula Frontal</small>
+                                    {% if courier.id_front_url %}
+                                        <img src="{{ courier.id_front_url }}" class="img-fluid rounded border" style="height:120px; object-fit:cover; cursor:pointer;" onclick="window.open(this.src)" alt="Cédula Frontal">
+                                    {% else %}
+                                        <div class="bg-light border rounded p-3 text-muted">Sin foto</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-4 text-center">
+                                    <small class="text-muted d-block mb-1">Cédula Posterior</small>
+                                    {% if courier.id_back_url %}
+                                        <img src="{{ courier.id_back_url }}" class="img-fluid rounded border" style="height:120px; object-fit:cover; cursor:pointer;" onclick="window.open(this.src)" alt="Cédula Posterior">
+                                    {% else %}
+                                        <div class="bg-light border rounded p-3 text-muted">Sin foto</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-4 text-center">
+                                    <small class="text-muted d-block mb-1">Selfie</small>
+                                    {% if courier.selfie_url %}
+                                        <img src="{{ courier.selfie_url }}" class="img-fluid rounded border" style="height:120px; object-fit:cover; cursor:pointer;" onclick="window.open(this.src)" alt="Selfie">
+                                    {% else %}
+                                        <div class="bg-light border rounded p-3 text-muted">Sin foto</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <button onclick="approveCourier('{{ courier.courier_id }}')" class="btn btn-success w-100 fw-bold py-2 shadow-sm">
+                                ✅ APROBAR REPARTIDOR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center py-5 text-muted">
+                    <h4 class="fw-light">No hay repartidores pendientes.</h4>
+                    <p>Todos los motorizados están al día.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        async function approveOrder(orderId) {
+            if(!confirm("¿Confirmas que revisaste la captura y el dinero está en la cuenta?")) return;
+
+            try {
+                const response = await fetch(`/admin/orders/${orderId}/approve`, { 
+                    method: 'PATCH' 
+                });
+                
+                if(response.ok) {
+                    alert("¡Pago aprobado! Alerta enviada al radar de motorizados.");
+                    location.reload();
+                } else {
+                    const error = await response.json();
+                    alert("Hubo un error al despachar la orden: " + (error.detail || "Error desconocido"));
+                }
+            } catch (error) {
+                console.error("Error conectando con el servidor:", error);
+                alert("Error de red conectando con el servidor.");
+            }
+        }
+
+        async function approveCourier(courierId) {
+            if(!confirm("¿Confirmas que las fotos de la cédula y el selfie son válidos?")) return;
+
+            try {
+                const response = await fetch(`/admin/couriers/${courierId}/approve`);
+                
+                if(response.ok) {
+                    alert("✅ Repartidor aprobado exitosamente. Ya puede conectarse a recibir pedidos.");
+                    location.reload();
+                } else {
+                    const error = await response.json();
+                    alert("Error al aprobar: " + (error.detail || "Error desconocido"));
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Error de red conectando con el servidor.");
+            }
+        }
+    </script>
+</body>
+</html>
+

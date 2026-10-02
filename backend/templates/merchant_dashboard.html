@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Comercio - {{ restaurant.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .badge-pickup-code {
+            font-size: 1.6rem;
+            letter-spacing: 3px;
+            font-weight: 800;
+        }
+        .product-img {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger shadow-sm">
+        <div class="container">
+            <span class="navbar-brand fw-bold fs-4">
+                <i class="bi bi-shop me-2"></i> {{ restaurant.name }} — Panel de Negocio
+            </span>
+            <span class="navbar-text text-white">
+                <i class="bi bi-geo-alt-fill text-warning"></i> Lorica Delivery Partner
+            </span>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- SECCIÓN 1: PEDIDOS ACTIVOS Y CÓDIGO DE RETIRO -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3><i class="bi bi-box-seam text-danger me-2"></i> Pedidos Activos para Entrega</h3>
+            <button class="btn btn-outline-secondary btn-sm" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise"></i> Actualizar
+            </button>
+        </div>
+
+        <div class="row mb-5" id="orders-container">
+            {% if orders %}
+                {% for order in orders %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Orden #{{ order.id[:8] }}</span>
+                            <span class="badge bg-warning text-dark">{{ order.status }}</span>
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="text-muted mb-1 small">Entregar al Domiciliario. Código de Verificación:</p>
+                            
+                            <!-- CÓDIGO DE VERIFICACIÓN -->
+                            <div class="p-2 my-2 bg-light border border-2 border-danger rounded">
+                                <span class="badge-pickup-code text-danger">
+                                    {{ order.pickup_code or order.delivery_code or '----' }}
+                                </span>
+                            </div>
+                            
+                            <p class="mb-1 text-start"><strong>Dirección:</strong> {{ order.delivery_address or 'Barrio Centro, Lorica' }}</p>
+                            <p class="mb-0 text-start text-muted small">Verifica que el motorizado diga este código antes de entregar el paquete.</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center py-4 bg-white rounded shadow-sm">
+                    <i class="bi bi-check2-circle text-success fs-1"></i>
+                    <h5 class="mt-2 text-muted">No tienes pedidos activos pendientes por despachar en este momento.</h5>
+                </div>
+            {% endif %}
+        </div>
+
+        <hr class="my-4">
+
+        <!-- SECCIÓN 2: GESTIÓN FÁCIL DEL MENÚ / PRODUCTOS -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="mb-0"><i class="bi bi-journal-richtext text-danger me-2"></i> Menú de Productos</h3>
+                <small class="text-muted">Publica tus platos para que los clientes puedan pedir desde la app</small>
+            </div>
+            <button class="btn btn-danger fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#newProductModal">
+                <i class="bi bi-plus-lg me-1"></i> Publicar Nuevo Producto
+            </button>
+        </div>
+
+        <!-- LISTADO DE PRODUCTOS -->
+        <div class="row" id="products-container">
+            {% if products %}
+                {% for p in products %}
+                <div class="col-md-6 mb-3">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body d-flex align-items-center">
+                            {% if p.image_url %}
+                                <img src="{{ p.image_url }}" class="product-img me-3" alt="{{ p.name }}">
+                            {% else %}
+                                <div class="product-img bg-secondary bg-opacity-25 me-3 d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-card-image fs-3 text-muted"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1 fw-bold">{{ p.name }}</h5>
+                                <p class="text-muted small mb-1">{{ p.description or 'Sin descripción' }}</p>
+                                <span class="fw-bold text-success fs-5">${{ "{:,.0f}".format(p.price) }} COP</span>
+                            </div>
+
+                            <div class="text-end ms-2">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="switch-{{ p.id }}"
+                                           {% if p.is_available %}checked{% endif %}
+                                           onchange="toggleProduct('{{ p.id }}')">
+                                    <label class="form-check-label small" for="switch-{{ p.id }}">
+                                        {% if p.is_available %}Disponible{% else %}Agotado{% endif %}
+                                    </label>
+                                </div>
+                                <button class="btn btn-outline-danger btn-sm border-0" onclick="deleteProduct('{{ p.id }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center py-5 bg-white rounded shadow-sm">
+                    <i class="bi bi-basket text-muted fs-1"></i>
+                    <h5 class="mt-2 text-muted">Aún no has publicado productos en tu menú.</h5>
+                    <p class="text-muted small">Presiona "Publicar Nuevo Producto" para empezar a vender.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- MODAL PARA CREAR PRODUCTO -->
+    <div class="modal fade" id="newProductModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i> Publicar Nuevo Producto</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="createProductForm" onsubmit="saveProduct(event)">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nombre del Producto / Plato</label>
+                            <input type="text" class="form-control" name="name" placeholder="Ej. Hamburguesa Doble Carne" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Precio (COP)</label>
+                            <input type="number" class="form-control" name="price" placeholder="Ej. 18000" step="500" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Descripción (Opcional)</label>
+                            <textarea class="form-control" name="description" rows="2" placeholder="Ej. Con queso mozzarella, tocineta y papas a la francesa"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Foto del Producto (Opcional)</label>
+                            <input type="file" class="form-control" name="image" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger fw-bold" id="submitBtn">
+                            <i class="bi bi-cloud-upload me-1"></i> Publicar Producto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const RESTAURANT_ID = "{{ restaurant.id }}";
+
+        // CREAR PRODUCTO
+        async function saveProduct(e) {
+            e.preventDefault();
+            const form = document.getElementById("createProductForm");
+            const formData = new FormData(form);
+            const submitBtn = document.getElementById("submitBtn");
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Publicando...';
+
+            try {
+                const response = await fetch(`/api/restaurants/${RESTAURANT_ID}/products`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert("¡Producto publicado exitosamente en tu menú!");
+                    location.reload();
+                } else {
+                    const err = await response.json();
+                    alert("Error al publicar: " + (err.detail || "Inténtalo de nuevo"));
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Error de red conectando con el servidor");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i> Publicar Producto';
+            }
+        }
+
+        // ALTERNAR DISPONIBILIDAD (DISPONIBLE / AGOTADO)
+        async function toggleProduct(productId) {
+            try {
+                const response = await fetch(`/api/restaurants/products/${productId}/toggle`, {
+                    method: 'PATCH'
+                });
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert("No se pudo cambiar el estado del producto.");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error de conexión");
+            }
+        }
+
+        // ELIMINAR PRODUCTO
+        async function deleteProduct(productId) {
+            if (!confirm("¿Estás seguro de que deseas eliminar este producto de tu menú?")) return;
+
+            try {
+                const response = await fetch(`/api/restaurants/products/${productId}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert("Error eliminando el producto");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error de conexión");
+            }
+        }
+    </script>
+</body>
+</html>

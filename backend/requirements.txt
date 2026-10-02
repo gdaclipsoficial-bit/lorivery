@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+asyncpg
+geoalchemy2
+pydantic
+websockets
+python-multipart
+alembic
+jinja2
+bcrypt
+python-jose[cryptography]
