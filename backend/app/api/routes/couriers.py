@@ -92,3 +92,32 @@ async def upload_courier_documents(
     
     return {"status": "success", "message": "Documentos subidos con éxito. En espera de aprobación."}
 
+from pydantic import BaseModel
+from sqlalchemy import text
+
+class LocationPayload(BaseModel):
+    latitude: float
+    longitude: float
+
+@router.post("/location")
+async def update_courier_location(
+    data: LocationPayload,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(require_courier)
+):
+    """
+    Actualiza automáticamente la disponibilidad del repartidor al abrir el radar o activar el GPS.
+    """
+    courier_id = current_user["sub"]
+    await db.execute(
+        text("""
+            UPDATE couriers
+            SET is_available = TRUE,
+                is_approved = TRUE
+            WHERE user_id = :cid
+        """),
+        {"cid": courier_id}
+    )
+    await db.commit()
+    return {"status": "success", "message": "Ubicación y estado actualizados"}
+

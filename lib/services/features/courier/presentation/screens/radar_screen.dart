@@ -59,6 +59,7 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
         _currentLocation = LatLng(initialPos.latitude, initialPos.longitude);
       });
       _centerMap();
+      _updateBackendLocation(initialPos.latitude, initialPos.longitude);
     }
 
     _positionStream = Geolocator.getPositionStream(
@@ -68,8 +69,24 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
         setState(() {
           _currentLocation = LatLng(position.latitude, position.longitude);
         });
+        _updateBackendLocation(position.latitude, position.longitude);
       }
     });
+  }
+
+  Future<void> _updateBackendLocation(double lat, double lng) async {
+    try {
+      final token = ref.read(authProvider).token;
+      if (token == null) return;
+      await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/couriers/location'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'latitude': lat, 'longitude': lng}),
+      );
+    } catch (_) {}
   }
 
   @override

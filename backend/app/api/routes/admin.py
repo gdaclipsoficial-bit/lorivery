@@ -11,14 +11,13 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 async def approve_order_payment(order_id: str, db: AsyncSession = Depends(get_db)):
     """
     1. Aprueba el pago de Nequi y pasa la orden a READY.
-    2. Consulta en PostGIS los repartidores cercanos.
-    3. Envía el WebSocket Broadcast para ofrecer la orden.
+    2. Obtiene los datos del restaurante y destino.
+    3. Envía SIEMPRE el WebSocket Broadcast a los repartidores para que les llegue a su app inmediatamente.
     """
     # 1. Aprobar la Orden
     query = (
         update(Order)
         .where(Order.id == order_id)
-        
         .values(status='READY')
         .returning(Order)
     )
@@ -31,46 +30,24 @@ async def approve_order_payment(order_id: str, db: AsyncSession = Depends(get_db
     order = updated_order[0]
     await db.commit()
 
-    # 2. Consultar repartidores cercanos con PostGIS (ST_DWithin)
-    # Suponiendo un radio de 3000 metros (3km) desde el restaurante
-    postgis_query = text("""
-        SELECT user_id, rating,
-            ST_Distance(
-                location, 
-                ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
-            ) AS distance_meters
-        FROM couriers
-        WHERE is_available = TRUE
-          AND ST_DWithin(
-              location, 
-              ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography, 
-              :radius
-          )
-        ORDER BY distance_meters ASC
-        LIMIT 5;
-    """)
-    
-    couriers_result = await db.execute(
-        postgis_query, 
-        {"lat": order.restaurant_lat, "lng": order.restaurant_lng, "radius": 3000}
-    )
-    nearby_couriers = couriers_result.mappings().all()
+    # 2. Obtener el nombre del restaurante real
+    restaurant_name = "Restaurante Local"
+    if order.restaurant_id:
+        res_r = await db.execute(text("SELECT name FROM restaurants WHERE id = :rid"), {"rid": order.restaurant_id})
+        r_row = res_r.fetchone()
+        if r_row:
+            restaurant_name = r_row[0]
 
-    if not nearby_couriers:
-        return {"status": "warning", "message": "Pago aprobado, pero no hay repartidores cercanos."}
+    # 3. Lanzar SIEMPRE el Broadcast a la sala general "demo_order" (Radar de todos los repartidores)
+    fee = order.delivery_fee or 3000
 
-    # 3. Lanzar el Broadcast a los repartidores
-    # Prevención del error TypeError con NoneType
-    fee = order.delivery_fee or 0
-
-    # Para el MVP, usaremos la sala general "demo_order" a la que se conectó el radar
     await manager.broadcast_to_room(
         room_id="demo_order",
         message={
             "type": "NEW_ORDER",
             "order_id": order.id,
-            "restaurant": "Restaurante Local",
-            "destination": "Cliente",
+            "restaurant": restaurant_name,
+            "destination": order.delivery_address or "Cliente Lorica",
             "earnings": f"${fee:,.0f} COP",
             "distance": "Calculada por GPS"
         }
@@ -78,8 +55,7 @@ async def approve_order_payment(order_id: str, db: AsyncSession = Depends(get_db
 
     return {
         "status": "success", 
-        "message": "Pago aprobado y orden transmitida a repartidores",
-        "nearby_couriers_notified": len(nearby_couriers)
+        "message": "Pago aprobado y orden transmitida a todos los repartidores en tiempo real"
     }
 
 @router.get("/couriers/pending")
