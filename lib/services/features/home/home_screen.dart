@@ -474,7 +474,8 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildDrawerItem({required IconData icon, required String title, required VoidCallback onTap, Color textColor = Colors.black87, Color iconColor = Colors.black87}) {
