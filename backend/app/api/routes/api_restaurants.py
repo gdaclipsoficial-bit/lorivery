@@ -23,6 +23,58 @@ async def get_restaurants(db: AsyncSession = Depends(get_db)):
         for r in restaurants
     ]
 
+@router.post("/")
+async def create_restaurant(
+    name: str = Form(...),
+    description: str = Form(None),
+    logo: UploadFile = File(None),
+    db: AsyncSession = Depends(get_db)
+):
+    """Crea un nuevo restaurante para la plataforma."""
+    logo_url = None
+    if logo and logo.filename:
+        file_ext = logo.filename.split(".")[-1]
+        filename = f"{uuid.uuid4()}.{file_ext}"
+        filepath = os.path.join("uploads", filename)
+        
+        with open(filepath, "wb") as buffer:
+            shutil.copyfileobj(logo.file, buffer)
+            
+        logo_url = f"/uploads/{filename}"
+
+    new_restaurant = Restaurant(
+        id=str(uuid.uuid4()),
+        name=name,
+        description=description,
+        logo_url=logo_url,
+        is_active=True
+    )
+    db.add(new_restaurant)
+    await db.commit()
+    await db.refresh(new_restaurant)
+    return {
+        "status": "success",
+        "restaurant_id": new_restaurant.id,
+        "name": new_restaurant.name,
+        "dashboard_url": f"/merchant-web/{new_restaurant.id}/dashboard"
+    }
+
+@router.delete("/{restaurant_id}")
+async def delete_restaurant(restaurant_id: str, db: AsyncSession = Depends(get_db)):
+    """Elimina un restaurante y sus productos."""
+    from sqlalchemy import delete
+    # Eliminar primero los productos asociados
+    await db.execute(delete(Product).where(Product.restaurant_id == restaurant_id))
+    # Eliminar el restaurante
+    query = select(Restaurant).where(Restaurant.id == restaurant_id)
+    result = await db.execute(query)
+    restaurant = result.scalars().first()
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restaurante no encontrado")
+    await db.delete(restaurant)
+    await db.commit()
+    return {"status": "success", "message": "Restaurante eliminado"}
+
 @router.get("/{restaurant_id}/products")
 async def get_restaurant_products(restaurant_id: str, db: AsyncSession = Depends(get_db)):
     """Obtiene los productos de un restaurante específico."""

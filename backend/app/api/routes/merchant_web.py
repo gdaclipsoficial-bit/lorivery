@@ -9,16 +9,17 @@ router = APIRouter(prefix="/merchant-web", tags=["Merchant Web"])
 templates = Jinja2Templates(directory="templates")
 
 @router.get("/dashboard")
-async def merchant_portal_select(db: AsyncSession = Depends(get_db)):
-    """Si no se pasa restaurant_id, lista los restaurantes registrados."""
-    query = select(Restaurant)
+async def merchant_portal_select(request: Request, db: AsyncSession = Depends(get_db)):
+    """Portal principal para ver y registrar restaurantes."""
+    query = select(Restaurant).where(Restaurant.is_active == True)
     result = await db.execute(query)
     restaurants = result.scalars().all()
     
-    return [
-        {"id": r.id, "name": r.name, "dashboard_url": f"/merchant-web/{r.id}/dashboard"}
-        for r in restaurants
-    ]
+    return templates.TemplateResponse(
+        request=request,
+        name="merchant_portal.html",
+        context={"restaurants": restaurants}
+    )
 
 @router.get("/{restaurant_id}/dashboard")
 async def merchant_dashboard(restaurant_id: str, request: Request, db: AsyncSession = Depends(get_db)):
