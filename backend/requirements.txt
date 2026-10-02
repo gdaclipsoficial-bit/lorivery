@@ -10,3 +10,5 @@ alembic
 jinja2
 bcrypt
 python-jose[cryptography]
+psycopg2-binary
+shapely
