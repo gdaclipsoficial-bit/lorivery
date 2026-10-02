@@ -22,7 +22,16 @@ if DATABASE_URL.startswith("postgres://"):
 elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("postgresql+asyncpg://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-print(f"--> [DATABASE_URL] Protocolo inicializado correctamente con asyncpg")
+from sqlalchemy.engine import make_url
+
+print(f"--> [DATABASE_URL RAW PREFIX]: '{DATABASE_URL[:18]}...' (Length: {len(DATABASE_URL)})")
+
+try:
+    url_obj = make_url(DATABASE_URL)
+    print(f"--> [DATABASE_URL] Parsed OK: driver={url_obj.drivername}, host={url_obj.host}, db={url_obj.database}")
+except Exception as err:
+    print(f"--> [DATABASE_URL ERROR] Failed to parse URL: {err}")
+    raise err
 
 # Motor asíncrono configurado con SSL y caché de sentencias en 0 para Supabase[cite: 3]
 engine = create_async_engine(
