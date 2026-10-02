@@ -8,11 +8,16 @@ load_dotenv()
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base
 
-# PostgreSQL connection string (lee desde Supabase a través del .env)[cite: 3]
 DATABASE_URL = os.getenv(
     "DATABASE_URL", 
     "postgresql+asyncpg://postgres@localhost:5432/lorica_delivery"
 )
+
+# Normalizar prefijo para asyncpg si proviene de Supabase o Render (postgres:// -> postgresql+asyncpg://)
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("postgresql+asyncpg://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
 # Motor asíncrono configurado con SSL y caché de sentencias en 0 para Supabase[cite: 3]
 engine = create_async_engine(
