@@ -3,21 +3,25 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.database import get_db
-from app.models.domain import Order, Courier, User
+from app.models.domain import Order, Courier, User, Restaurant, Product
 
 router = APIRouter(prefix="/admin-web", tags=["Admin Web"])
-
-# Uvicorn corre desde la carpeta backend/, así que "templates" resuelve a backend/templates/
 templates = Jinja2Templates(directory="templates")
 
 @router.get("/dashboard")
 async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
-    # Traer todas las órdenes pendientes (CREATED)
+    """Panel Central Unificado: Comercios, Menús, Despachos y Seguridad."""
+    # 1. Órdenes pendientes de pago (CREATED)
     query = select(Order).where(Order.status == 'CREATED')
     result = await db.execute(query)
     orders = result.scalars().all()
     
-    # Traer repartidores pendientes de aprobación
+    # 2. Órdenes activas en curso (READY, ASSIGNED, PICKED_UP)
+    active_query = select(Order).where(Order.status.in_(['READY', 'ASSIGNED', 'PICKED_UP']))
+    active_result = await db.execute(active_query)
+    active_orders = active_result.scalars().all()
+    
+    # 3. Repartidores pendientes de aprobación (KYC)
     courier_query = (
         select(Courier, User)
         .join(User, Courier.user_id == User.id)
@@ -38,9 +42,33 @@ async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
             "selfie_url": courier.selfie_url,
         })
     
+    # 4. Todos los restaurantes y sus productos
+    rest_query = select(Restaurant).where(Restaurant.is_active == True)
+    rest_result = await db.execute(rest_query)
+    restaurants = rest_result.scalars().all()
+    
+    restaurants_data = []
+    for r in restaurants:
+        prod_q = select(Product).where(Product.restaurant_id == r.id)
+        prod_res = await db.execute(prod_q)
+        products = prod_res.scalars().all()
+        restaurants_data.append({
+            "id": r.id,
+            "name": r.name,
+            "description": r.description,
+            "logo_url": r.logo_url,
+            "products_count": len(products),
+            "products": products
+        })
+    
     return templates.TemplateResponse(
         request=request,
         name="dashboard.html",
-        context={"orders": orders, "pending_couriers": pending_couriers}
+        context={
+            "orders": orders,
+            "active_orders": active_orders,
+            "pending_couriers": pending_couriers,
+            "restaurants": restaurants_data
+        }
     )
 

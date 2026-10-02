@@ -43,9 +43,15 @@ app.include_router(api_restaurants.router)
 app.include_router(couriers.router)
 app.include_router(merchant_web.router)
 
+from fastapi.responses import RedirectResponse
+
 @app.get("/")
 async def root():
     return {"message": "Lorica Delivery API en línea", "status": "active"}
+
+@app.get("/dashboard")
+async def dashboard_redirect():
+    return RedirectResponse(url="/admin-web/dashboard")
 
 @app.websocket("/ws/orders/{order_id}")
 async def order_websocket(websocket: WebSocket, order_id: str):
