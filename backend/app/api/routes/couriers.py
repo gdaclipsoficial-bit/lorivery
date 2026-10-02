@@ -37,6 +37,7 @@ async def get_courier_profile(
         "vehicle_type": courier.vehicle_type,
         "balance": courier.balance,
         "is_available": courier.is_available,
+        "is_approved": courier.is_approved,
         "rating": courier.rating
     }
 
