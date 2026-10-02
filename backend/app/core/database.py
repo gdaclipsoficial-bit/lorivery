@@ -33,12 +33,14 @@ except Exception as err:
     print(f"--> [DATABASE_URL ERROR] Failed to parse URL: {err}")
     raise err
 
-# Motor asíncrono configurado con SSL y caché de sentencias en 0 para Supabase[cite: 3]
+# Motor asíncrono configurado con NullPool para Supabase PgBouncer (Transaction Mode)
+# pool_size y max_overflow no son compatibles con el pooler de Supabase
+from sqlalchemy.pool import NullPool
+
 engine = create_async_engine(
     DATABASE_URL, 
-    echo=True, 
-    pool_size=10, 
-    max_overflow=20,
+    echo=False,
+    poolclass=NullPool,
     connect_args={
         "ssl": "require",
         "statement_cache_size": 0

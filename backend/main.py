@@ -12,8 +12,17 @@ from app.api.routes import auth
 from app.api.routes import api_restaurants
 from app.api.routes import couriers
 from app.api.routes import merchant_web
+from app.core.database import engine, Base
+# Importar todos los modelos para que Base.metadata los registre
+import app.models.domain  # noqa: F401
 
 app = FastAPI(title="Lorica Delivery MVP Backend")
+
+@app.on_event("startup")
+async def on_startup():
+    """Crea las tablas en la BD si no existen (auto-migrate en Render)."""
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
