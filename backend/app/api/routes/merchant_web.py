@@ -37,8 +37,11 @@ async def merchant_dashboard(restaurant_id: str, request: Request, db: AsyncSess
     prod_result = await db.execute(prod_query)
     products = prod_result.scalars().all()
     
-    # 3. Obtener pedidos activos para este restaurante (incluyendo pickup_code / delivery_code)
-    order_query = select(Order).where(Order.status.in_(["READY", "ASSIGNED", "AT_RESTAURANT", "PICKED_UP", "ON_THE_WAY"]))
+    # 3. Obtener pedidos activos exclusivamente para este restaurante (con pickup_code para entrega)
+    order_query = select(Order).where(
+        Order.restaurant_id == restaurant_id,
+        Order.status.in_(["READY", "ASSIGNED", "AT_RESTAURANT", "PICKED_UP", "ON_THE_WAY"])
+    )
     order_result = await db.execute(order_query)
     active_orders = order_result.scalars().all()
     

@@ -12,7 +12,7 @@
         .nav-pills .nav-link {
             border-radius: 12px;
             font-weight: 600;
-            padding: 10px 20px;
+            padding: 10px 24px;
             color: #495057;
             transition: all 0.2s;
         }
@@ -31,10 +31,10 @@
             transition: all 0.2s;
         }
         .product-thumb {
-            width: 55px;
-            height: 55px;
+            width: 60px;
+            height: 60px;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 12px;
         }
         .doc-thumb {
             height: 110px;
@@ -51,13 +51,13 @@
             border-radius: 12px;
         }
         .badge-code {
-            font-size: 1.4rem;
+            font-size: 1.6rem;
             letter-spacing: 2px;
             font-weight: 800;
         }
         .lock-container {
             max-width: 420px;
-            margin: 60px auto;
+            margin: 40px auto;
         }
     </style>
 </head>
@@ -85,28 +85,21 @@
 
     <div class="container py-4">
 
-        <!-- NAVEGACIÓN POR PESTAÑAS -->
-        <ul class="nav nav-pills justify-content-center mb-4 gap-2" id="mainTabs" role="tablist">
+        <!-- NAVEGACIÓN POR PESTAÑAS (PÚBLICA VS PRIVADA) -->
+        <ul class="nav nav-pills justify-content-center mb-4 gap-3" id="mainTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="tab-merchants-btn" data-bs-toggle="pill" data-bs-target="#tab-merchants" type="button" role="tab">
+                <button class="nav-link active fs-5" id="tab-merchants-btn" data-bs-toggle="pill" data-bs-target="#tab-merchants" type="button" role="tab">
                     <i class="bi bi-shop me-2"></i> 🍽️ Restaurantes y Menús
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link position-relative" id="tab-private-btn" data-bs-toggle="pill" data-bs-target="#tab-private" type="button" role="tab" onclick="checkAuthAccess()">
-                    <i class="bi bi-shield-lock-fill me-2 text-warning"></i> 🔒 Área Privada (Pagos y Repartidores)
-                    {% if (orders|length + pending_couriers|length) > 0 %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        {{ orders|length + pending_couriers|length }}
+                <button class="nav-link position-relative fs-5" id="tab-private-btn" data-bs-toggle="pill" data-bs-target="#tab-private" type="button" role="tab" onclick="checkAuthAccess()">
+                    <i class="bi bi-shield-lock-fill me-2 text-warning"></i> 🔒 Área Administrativa (Privada)
+                    {% set total_pending = (orders|length + pending_couriers|length + pending_restaurants|length) %}
+                    {% if total_pending > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-6">
+                        {{ total_pending }}
                     </span>
-                    {% endif %}
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tab-live-btn" data-bs-toggle="pill" data-bs-target="#tab-live" type="button" role="tab">
-                    <i class="bi bi-activity me-2"></i> 🛵 Despachos en Vivo
-                    {% if active_orders|length > 0 %}
-                    <span class="badge bg-success ms-1">{{ active_orders|length }}</span>
                     {% endif %}
                 </button>
             </li>
@@ -122,7 +115,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                     <div>
                         <h3 class="fw-bold mb-1"><i class="bi bi-building text-danger me-2"></i> Directorio de Negocios</h3>
-                        <p class="text-muted mb-0">Crea tus restaurantes y gestiona los platos disponibles en la aplicación.</p>
+                        <p class="text-muted mb-0">Registra tu restaurante y publica platos en el menú. Requiere logo obligatorio y aprobación.</p>
                     </div>
                     <button class="btn btn-danger fw-bold shadow-sm px-4 py-2" data-bs-toggle="modal" data-bs-target="#newRestaurantModal">
                         <i class="bi bi-plus-circle me-1"></i> Registrar Nuevo Restaurante
@@ -138,14 +131,17 @@
                                 <div class="d-flex justify-content-between align-items-center pb-3 border-bottom mb-3">
                                     <div class="d-flex align-items-center">
                                         {% if r.logo_url %}
-                                            <img src="{{ r.logo_url }}" class="product-thumb me-3" alt="{{ r.name }}">
+                                            <img src="{{ r.logo_url }}" class="product-thumb me-3 border" alt="{{ r.name }}">
                                         {% else %}
                                             <div class="product-thumb bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center me-3 fs-3">
                                                 <i class="bi bi-shop"></i>
                                             </div>
                                         {% endif %}
                                         <div>
-                                            <h5 class="fw-bold mb-0 text-dark">{{ r.name }}</h5>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <h5 class="fw-bold mb-0 text-dark">{{ r.name }}</h5>
+                                                <span class="badge bg-success small"><i class="bi bi-check-circle me-1"></i> Aprobado</span>
+                                            </div>
                                             <small class="text-muted">{{ r.description or 'Restaurante aliado' }}</small>
                                         </div>
                                     </div>
@@ -214,8 +210,8 @@
                 {% else %}
                     <div class="card card-custom text-center py-5">
                         <i class="bi bi-shop-window text-muted display-3 mb-3"></i>
-                        <h4 class="fw-bold">No hay restaurantes registrados</h4>
-                        <p class="text-muted">Crea el primer restaurante para que los clientes puedan pedir desde la app.</p>
+                        <h4 class="fw-bold">No hay restaurantes aprobados aún</h4>
+                        <p class="text-muted">Registra tu restaurante con su logo. Una vez aprobado por el administrador en el Área Privada, aparecerá aquí y en la app.</p>
                         <div>
                             <button class="btn btn-danger fw-bold shadow-sm px-4 py-2" data-bs-toggle="modal" data-bs-target="#newRestaurantModal">
                                 <i class="bi bi-plus-circle me-1"></i> Registrar Primer Restaurante
@@ -227,18 +223,18 @@
 
 
             <!-- ========================================================================= -->
-            <!-- PESTAÑA 2: ÁREA PRIVADA (PAGOS NEQUI Y REPARTIDORES KYC) - CON PIN -->
+            <!-- PESTAÑA 2: ÁREA PRIVADA (PROTEGIDA POR PIN) - ADMINISTRACIÓN TOTAL -->
             <!-- ========================================================================= -->
             <div class="tab-pane fade" id="tab-private" role="tabpanel">
 
-                <!-- PANTALLA DE BLOQUEO (SE MUESTRA SI NO ESTÁ AUTORIZADO) -->
+                <!-- PANTALLA DE BLOQUEO CON PIN -->
                 <div id="private-locked-view" class="lock-container text-center py-4">
                     <div class="card card-custom p-4 shadow">
                         <div class="mb-3 text-danger fs-1">
                             <i class="bi bi-shield-lock-fill"></i>
                         </div>
                         <h4 class="fw-bold mb-2">Área Administrativa Privada</h4>
-                        <p class="text-muted small mb-4">Esta sección contiene la verificación de pagos Nequi y aprobación de documentos de identidad.</p>
+                        <p class="text-muted small mb-4">Ingresa el PIN de seguridad para gestionar pagos Nequi, aprobación de restaurantes, repartidores y despachos en vivo.</p>
                         
                         <div class="mb-3">
                             <input type="password" id="adminPinInput" class="form-control form-control-lg text-center fw-bold" placeholder="PIN de Seguridad (ej. 2026)" maxlength="10">
@@ -250,161 +246,231 @@
                     </div>
                 </div>
 
-                <!-- CONTENIDO PRIVADO (VISIBLE SOLO TRAS INGRESAR PIN) -->
+                <!-- CONTENIDO PRIVADO (VISIBLE TRAS PIN) -->
                 <div id="private-unlocked-view" style="display: none;">
                     
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="fw-bold mb-0 text-dark">
-                            <i class="bi bi-cash-stack text-success me-2"></i> 1. Comprobantes de Pago Nequi Pendientes
-                        </h4>
+                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                        <h3 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-shield-check text-success me-2"></i> Panel Administrativo Central
+                        </h3>
                         <button class="btn btn-outline-secondary btn-sm" onclick="lockPrivateArea()">
                             <i class="bi bi-lock-fill me-1"></i> Bloquear Área
                         </button>
                     </div>
 
-                    <!-- PAGOS PENDIENTES -->
-                    <div class="row g-4 mb-5">
-                        {% if orders %}
-                            {% for order in orders %}
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card card-custom h-100 p-3 border border-warning border-2">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span class="badge bg-warning text-dark fw-bold">PAGO POR VERIFICAR</span>
-                                        <span class="text-muted small">ID: {{ order.id[:8] }}</span>
-                                    </div>
-                                    
-                                    {% if order.payment_proof_url %}
-                                        <img src="{{ order.payment_proof_url }}" class="proof-img my-2 border cursor-pointer" onclick="window.open(this.src)" title="Clic para ampliar comprobante">
-                                    {% else %}
-                                        <div class="proof-img my-2 d-flex align-items-center justify-content-center bg-light text-muted">
-                                            Sin comprobante adjunto
+                    <!-- ============================================== -->
+                    <!-- 1. RESTAURANTES PENDIENTES DE APROBACIÓN -->
+                    <!-- ============================================== -->
+                    <div class="mb-5">
+                        <h4 class="fw-bold mb-3 text-danger">
+                            <i class="bi bi-shop me-2"></i> 1. Restaurantes Pendientes de Aprobación
+                            {% if pending_restaurants %}
+                            <span class="badge bg-danger ms-2">{{ pending_restaurants|length }}</span>
+                            {% endif %}
+                        </h4>
+
+                        <div class="row g-4">
+                            {% if pending_restaurants %}
+                                {% for r in pending_restaurants %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card card-custom p-3 border border-danger border-2 h-100 d-flex flex-column justify-content-between">
+                                        <div>
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <span class="badge bg-warning text-dark fw-bold">NUEVO REGISTRO</span>
+                                                <span class="text-muted small">ID: {{ r.id[:8] }}</span>
+                                            </div>
+                                            
+                                            <div class="d-flex align-items-center mb-3">
+                                                {% if r.logo_url %}
+                                                    <img src="{{ r.logo_url }}" class="product-thumb me-3 border" style="width:70px; height:70px;" alt="{{ r.name }}" onclick="window.open(this.src)">
+                                                {% else %}
+                                                    <div class="product-thumb bg-light me-3 d-flex align-items-center justify-content-center" style="width:70px; height:70px;">
+                                                        <i class="bi bi-image text-muted fs-3"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <h5 class="fw-bold mb-1">{{ r.name }}</h5>
+                                                    <p class="text-muted small mb-0">{{ r.description or 'Sin descripción' }}</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                    {% endif %}
-                                    
-                                    <div class="my-2">
-                                        <p class="mb-1 small"><strong>Dirección Entrega:</strong> {{ order.delivery_address or 'No especificada' }}</p>
-                                        <p class="mb-1 small"><strong>Tarifa Domicilio:</strong> ${{ "{:,.0f}".format(order.delivery_fee or 3000) }} COP</p>
+
+                                        <button onclick="approveRestaurant('{{ r.id }}')" class="btn btn-success w-100 fw-bold py-2 shadow-sm mt-3">
+                                            <i class="bi bi-check2-circle me-1"></i> APROBAR RESTAURANTE
+                                        </button>
                                     </div>
-
-                                    <button onclick="approveOrder('{{ order.id }}')" class="btn btn-success w-100 fw-bold py-2 mt-auto shadow-sm">
-                                        <i class="bi bi-check2-circle me-1"></i> APROBAR Y DESPACHAR
-                                    </button>
                                 </div>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="col-12 text-center py-4 bg-white rounded-4 shadow-sm">
-                                <i class="bi bi-check-circle-fill text-success fs-1"></i>
-                                <h5 class="mt-2 fw-bold text-dark">Todos los pagos están al día</h5>
-                                <p class="text-muted small mb-0">No hay pagos pendientes de revisión en este momento.</p>
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- REPARTIDORES PENDIENTES KYC -->
-                    <h4 class="fw-bold mb-4 text-dark">
-                        <i class="bi bi-person-vcard text-primary me-2"></i> 2. Repartidores Pendientes de Aprobación (KYC)
-                    </h4>
-
-                    <div class="row g-4">
-                        {% if pending_couriers %}
-                            {% for c in pending_couriers %}
-                            <div class="col-lg-6">
-                                <div class="card card-custom p-3 border border-primary border-2">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h5 class="fw-bold mb-0">{{ c.name }}</h5>
-                                        <span class="badge bg-warning text-dark">En Revisión</span>
+                                {% endfor %}
+                            {% else %}
+                                <div class="col-12">
+                                    <div class="p-3 bg-white rounded-4 shadow-sm text-center text-muted">
+                                        <i class="bi bi-check-circle text-success me-1"></i> No hay restaurantes pendientes de aprobación.
                                     </div>
-
-                                    <div class="row g-2 mb-3 text-muted small">
-                                        <div class="col-6"><strong>Cédula:</strong> {{ c.national_id or 'No registrada' }}</div>
-                                        <div class="col-6"><strong>Teléfono:</strong> {{ c.phone_number or 'No registrado' }}</div>
-                                        <div class="col-6"><strong>Email:</strong> {{ c.email }}</div>
-                                        <div class="col-6"><strong>Vehículo:</strong> {{ c.vehicle_type }}</div>
-                                    </div>
-
-                                    <div class="row g-2 mb-3 text-center">
-                                        <div class="col-4">
-                                            <small class="d-block text-muted mb-1">Cédula Frente</small>
-                                            {% if c.id_front_url %}
-                                                <img src="{{ c.id_front_url }}" class="doc-thumb w-100 border" onclick="window.open(this.src)" alt="Frente">
-                                            {% else %}
-                                                <div class="doc-thumb bg-light border d-flex align-items-center justify-content-center text-muted small">Sin foto</div>
-                                            {% endif %}
-                                        </div>
-                                        <div class="col-4">
-                                            <small class="d-block text-muted mb-1">Cédula Reverso</small>
-                                            {% if c.id_back_url %}
-                                                <img src="{{ c.id_back_url }}" class="doc-thumb w-100 border" onclick="window.open(this.src)" alt="Reverso">
-                                            {% else %}
-                                                <div class="doc-thumb bg-light border d-flex align-items-center justify-content-center text-muted small">Sin foto</div>
-                                            {% endif %}
-                                        </div>
-                                        <div class="col-4">
-                                            <small class="d-block text-muted mb-1">Selfie</small>
-                                            {% if c.selfie_url %}
-                                                <img src="{{ c.selfie_url }}" class="doc-thumb w-100 border" onclick="window.open(this.src)" alt="Selfie">
-                                            {% else %}
-                                                <div class="doc-thumb bg-light border d-flex align-items-center justify-content-center text-muted small">Sin foto</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-
-                                    <button onclick="approveCourier('{{ c.courier_id }}')" class="btn btn-success w-100 fw-bold py-2 shadow-sm">
-                                        <i class="bi bi-person-check-fill me-1"></i> APROBAR CUENTA DE REPARTIDOR
-                                    </button>
                                 </div>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="col-12 text-center py-4 bg-white rounded-4 shadow-sm">
-                                <i class="bi bi-person-check-fill text-success fs-1"></i>
-                                <h5 class="mt-2 fw-bold text-dark">Todos los repartidores están verificados</h5>
-                                <p class="text-muted small mb-0">No hay solicitudes de nuevos motorizados pendientes.</p>
-                            </div>
-                        {% endif %}
-                    </div>
-
-                </div>
-            </div>
-
-
-            <!-- ========================================================================= -->
-            <!-- PESTAÑA 3: DESPACHOS EN VIVO (MONITOREO DE VIAJES) -->
-            <!-- ========================================================================= -->
-            <div class="tab-pane fade" id="tab-live" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h3 class="fw-bold mb-1"><i class="bi bi-radar text-danger me-2"></i> Monitoreo de Pedidos en Curso</h3>
-                        <p class="text-muted mb-0">Códigos de retiro y entrega para verificación en sitio.</p>
-                    </div>
-                </div>
-
-                <div class="row g-4">
-                    {% if active_orders %}
-                        {% for o in active_orders %}
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card card-custom h-100 p-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-bold">Orden #{{ o.id[:8] }}</span>
-                                    <span class="badge bg-primary">{{ o.status }}</span>
-                                </div>
-                                <div class="bg-light p-3 rounded-3 text-center my-2 border">
-                                    <small class="text-muted d-block">PIN de Retiro / Entrega:</small>
-                                    <span class="badge-code text-danger">{{ o.pickup_code or o.delivery_code or '----' }}</span>
-                                </div>
-                                <p class="mb-1 small"><strong>Destino:</strong> {{ o.delivery_address or 'Barrio Centro' }}</p>
-                                <p class="mb-0 small text-muted"><strong>Tarifa Repartidor:</strong> ${{ "{:,.0f}".format(o.delivery_fee or 3000) }} COP</p>
-                            </div>
+                            {% endif %}
                         </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="col-12 text-center py-5 bg-white rounded-4 shadow-sm">
-                            <i class="bi bi-truck text-muted display-4 mb-2"></i>
-                            <h5 class="fw-bold text-dark">No hay despachos en tránsito</h5>
-                            <p class="text-muted small">Los pedidos aprobados aparecerán aquí en tiempo real.</p>
+                    </div>
+
+
+                    <!-- ============================================== -->
+                    <!-- 2. PAGOS NEQUI / BANCOLOMBIA PENDIENTES -->
+                    <!-- ============================================== -->
+                    <div class="mb-5">
+                        <h4 class="fw-bold mb-3 text-success">
+                            <i class="bi bi-cash-stack me-2"></i> 2. Comprobantes de Pago Nequi Pendientes
+                            {% if orders %}
+                            <span class="badge bg-success ms-2">{{ orders|length }}</span>
+                            {% endif %}
+                        </h4>
+
+                        <div class="row g-4">
+                            {% if orders %}
+                                {% for order in orders %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card card-custom h-100 p-3 border border-warning border-2">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-warning text-dark fw-bold">PAGO POR VERIFICAR</span>
+                                            <span class="text-muted small">ID: {{ order.id[:8] }}</span>
+                                        </div>
+                                        
+                                        {% if order.payment_proof_url %}
+                                            <img src="{{ order.payment_proof_url }}" class="proof-img my-2 border" style="cursor:pointer;" onclick="window.open(this.src)" title="Clic para ampliar comprobante">
+                                        {% else %}
+                                            <div class="proof-img my-2 d-flex align-items-center justify-content-center bg-light text-muted">
+                                                Sin comprobante adjunto
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="my-2">
+                                            <p class="mb-1 small"><strong>Dirección Entrega:</strong> {{ order.delivery_address or 'No especificada' }}</p>
+                                            <p class="mb-1 small"><strong>Tarifa Domicilio:</strong> ${{ "{:,.0f}".format(order.delivery_fee or 3000) }} COP</p>
+                                        </div>
+
+                                        <button onclick="approveOrder('{{ order.id }}')" class="btn btn-success w-100 fw-bold py-2 mt-auto shadow-sm">
+                                            <i class="bi bi-check2-circle me-1"></i> APROBAR Y DESPACHAR
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="col-12">
+                                    <div class="p-3 bg-white rounded-4 shadow-sm text-center text-muted">
+                                        <i class="bi bi-check-circle text-success me-1"></i> No hay pagos pendientes de revisión.
+                                    </div>
+                                </div>
+                            {% endif %}
                         </div>
-                    {% endif %}
+                    </div>
+
+
+                    <!-- ============================================== -->
+                    <!-- 3. REPARTIDORES PENDIENTES (KYC) -->
+                    <!-- ============================================== -->
+                    <div class="mb-5">
+                        <h4 class="fw-bold mb-3 text-primary">
+                            <i class="bi bi-person-vcard me-2"></i> 3. Repartidores Pendientes de Aprobación (KYC)
+                            {% if pending_couriers %}
+                            <span class="badge bg-primary ms-2">{{ pending_couriers|length }}</span>
+                            {% endif %}
+                        </h4>
+
+                        <div class="row g-4">
+                            {% if pending_couriers %}
+                                {% for c in pending_couriers %}
+                                <div class="col-lg-6">
+                                    <div class="card card-custom p-3 border border-primary border-2">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 class="fw-bold mb-0">{{ c.name }}</h5>
+                                            <span class="badge bg-warning text-dark">En Revisión</span>
+                                        </div>
+
+                                        <div class="row g-2 mb-3 text-muted small">
+                                            <div class="col-6"><strong>Cédula:</strong> {{ c.national_id or 'No registrada' }}</div>
+                                            <div class="col-6"><strong>Teléfono:</strong> {{ c.phone_number or 'No registrado' }}</div>
+                                            <div class="col-6"><strong>Email:</strong> {{ c.email }}</div>
+                                            <div class="col-6"><strong>Vehículo:</strong> {{ c.vehicle_type }}</div>
+                                        </div>
+
+                                        <div class="row g-2 mb-3 text-center">
+                                            <div class="col-4">
+                                                <small class="d-block text-muted mb-1">Cédula Frente</small>
+                                                {% if c.id_front_url %}
+                                                    <img src="{{ c.id_front_url }}" class="doc-thumb w-100 border" onclick="window.open(this.src)" alt="Frente">
+                                                {% else %}
+                                                    <div class="doc-thumb bg-light border d-flex align-items-center justify-content-center text-muted small">Sin foto</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-4">
+                                                <small class="d-block text-muted mb-1">Cédula Reverso</small>
+                                                {% if c.id_back_url %}
+                                                    <img src="{{ c.id_back_url }}" class="doc-thumb w-100 border" onclick="window.open(this.src)" alt="Reverso">
+                                                {% else %}
+                                                    <div class="doc-thumb bg-light border d-flex align-items-center justify-content-center text-muted small">Sin foto</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-4">
+                                                <small class="d-block text-muted mb-1">Selfie</small>
+                                                {% if c.selfie_url %}
+                                                    <img src="{{ c.selfie_url }}" class="doc-thumb w-100 border" onclick="window.open(this.src)" alt="Selfie">
+                                                {% else %}
+                                                    <div class="doc-thumb bg-light border d-flex align-items-center justify-content-center text-muted small">Sin foto</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <button onclick="approveCourier('{{ c.courier_id }}')" class="btn btn-success w-100 fw-bold py-2 shadow-sm">
+                                            <i class="bi bi-person-check-fill me-1"></i> APROBAR CUENTA DE REPARTIDOR
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="col-12">
+                                    <div class="p-3 bg-white rounded-4 shadow-sm text-center text-muted">
+                                        <i class="bi bi-check-circle text-success me-1"></i> No hay solicitudes de repartidores pendientes.
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+
+                    <!-- ============================================== -->
+                    <!-- 4. DESPACHOS EN VIVO (MONITOREO DE VIAJES) -->
+                    <!-- ============================================== -->
+                    <div class="mb-4">
+                        <h4 class="fw-bold mb-3 text-dark">
+                            <i class="bi bi-activity me-2"></i> 4. Despachos en Vivo (Monitoreo)
+                        </h4>
+
+                        <div class="row g-4">
+                            {% if active_orders %}
+                                {% for o in active_orders %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card card-custom h-100 p-3 border">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="fw-bold">Orden #{{ o.id[:8] }}</span>
+                                            <span class="badge bg-primary">{{ o.status }}</span>
+                                        </div>
+                                        <div class="bg-light p-3 rounded-3 text-center my-2 border">
+                                            <small class="text-muted d-block">PIN de Retiro / Entrega:</small>
+                                            <span class="badge-code text-danger">{{ o.pickup_code or o.delivery_code or '----' }}</span>
+                                        </div>
+                                        <p class="mb-1 small"><strong>Destino:</strong> {{ o.delivery_address or 'Barrio Centro' }}</p>
+                                        <p class="mb-0 small text-muted"><strong>Tarifa Repartidor:</strong> ${{ "{:,.0f}".format(o.delivery_fee or 3000) }} COP</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="col-12">
+                                    <div class="p-3 bg-white rounded-4 shadow-sm text-center text-muted">
+                                        <i class="bi bi-truck me-1"></i> No hay pedidos en tránsito en este momento.
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -412,7 +478,7 @@
     </div>
 
 
-    <!-- MODAL REGISTRAR RESTAURANTE -->
+    <!-- MODAL REGISTRAR RESTAURANTE (LOGO OBLIGATORIO) -->
     <div class="modal fade" id="newRestaurantModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content border-0 shadow">
@@ -422,8 +488,11 @@
                 </div>
                 <form id="createRestaurantForm" onsubmit="saveRestaurant(event)">
                     <div class="modal-body">
+                        <div class="alert alert-warning small mb-3">
+                            <i class="bi bi-info-circle me-1"></i> Tu restaurante entrará en revisión y será activado tras la aprobación del administrador.
+                        </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Nombre del Negocio / Restaurante</label>
+                            <label class="form-label fw-bold">Nombre del Negocio / Restaurante <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="name" placeholder="Ej. Asados de Lorica" required>
                         </div>
                         <div class="mb-3">
@@ -431,8 +500,9 @@
                             <textarea class="form-control" name="description" rows="2" placeholder="Ej. Especialidad en carnes al carbón y platos típicos"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Logo o Foto de la Fachada (Opcional)</label>
-                            <input type="file" class="form-control" name="logo" accept="image/*">
+                            <label class="form-label fw-bold">Logo o Foto de la Fachada <span class="text-danger">* (Obligatorio)</span></label>
+                            <input type="file" class="form-control" name="logo" accept="image/*" required>
+                            <small class="text-muted">Se mostrará en la aplicación para todos los clientes.</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -458,11 +528,11 @@
                     <input type="hidden" id="modalRestaurantId" name="restaurant_id">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Nombre del Plato / Producto</label>
+                            <label class="form-label fw-bold">Nombre del Plato / Producto <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="name" placeholder="Ej. Mojarra Frita con Patacón" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Precio (COP)</label>
+                            <label class="form-label fw-bold">Precio (COP) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" name="price" placeholder="Ej. 25000" step="500" required>
                         </div>
                         <div class="mb-3">
@@ -530,18 +600,34 @@
 
             try {
                 const res = await fetch('/api/restaurants/', { method: 'POST', body: formData });
+                const data = await res.json();
                 if (res.ok) {
-                    alert("¡Restaurante creado con éxito!");
+                    alert("¡Restaurante registrado con éxito! Entrará en revisión por el administrador.");
                     location.reload();
                 } else {
-                    const err = await res.json();
-                    alert("Error: " + (err.detail || "No se pudo guardar"));
+                    alert("Error: " + (data.detail || "No se pudo guardar"));
                 }
             } catch (err) {
                 alert("Error de conexión");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i> Guardar Restaurante';
+            }
+        }
+
+        async function approveRestaurant(restaurantId) {
+            if (!confirm("¿Aprobar este restaurante para que sea visible en la aplicación?")) return;
+            try {
+                const res = await fetch(`/api/restaurants/${restaurantId}/approve`, { method: 'PATCH' });
+                if (res.ok) {
+                    alert("✅ Restaurante aprobado exitosamente. Ya está visible para todos los clientes.");
+                    location.reload();
+                } else {
+                    const err = await res.json();
+                    alert("Error al aprobar: " + (err.detail || "Error desconocido"));
+                }
+            } catch (err) {
+                alert("Error de conexión");
             }
         }
 

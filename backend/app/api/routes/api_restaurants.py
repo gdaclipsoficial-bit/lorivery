@@ -11,8 +11,25 @@ router = APIRouter(prefix="/api/restaurants", tags=["Restaurants"])
 
 @router.get("/")
 async def get_restaurants(db: AsyncSession = Depends(get_db)):
-    """Obtiene la lista de restaurantes activos."""
-    query = select(Restaurant).where(Restaurant.is_active == True)
+    """Obtiene la lista de restaurantes aprobados y activos."""
+    query = select(Restaurant).where(Restaurant.is_active == True, Restaurant.is_approved == True)
+    result = await db.execute(query)
+    restaurants = result.scalars().all()
+    
+    return [
+        {
+            "id": r.id,
+            "name": r.name,
+            "description": r.description,
+            "logo_url": r.logo_url,
+        }
+        for r in restaurants
+    ]
+
+@router.get("/pending")
+async def get_pending_restaurants(db: AsyncSession = Depends(get_db)):
+    """Obtiene la lista de restaurantes pendientes de aprobación por el Administrador."""
+    query = select(Restaurant).where(Restaurant.is_approved == False)
     result = await db.execute(query)
     restaurants = result.scalars().all()
     
@@ -30,37 +47,51 @@ async def get_restaurants(db: AsyncSession = Depends(get_db)):
 async def create_restaurant(
     name: str = Form(...),
     description: str = Form(None),
-    logo: UploadFile = File(None),
+    logo: UploadFile = File(...),
     db: AsyncSession = Depends(get_db)
 ):
-    """Crea un nuevo restaurante para la plataforma."""
-    logo_url = None
-    if logo and logo.filename:
-        file_ext = logo.filename.split(".")[-1]
-        filename = f"{uuid.uuid4()}.{file_ext}"
-        filepath = os.path.join("uploads", filename)
+    """Crea un nuevo restaurante para la plataforma (requiere logo obligatorio y aprobación)."""
+    if not logo or not logo.filename:
+        raise HTTPException(status_code=400, detail="El logo o foto de la fachada es obligatorio.")
+
+    file_ext = logo.filename.split(".")[-1]
+    filename = f"{uuid.uuid4()}.{file_ext}"
+    filepath = os.path.join("uploads", filename)
+    
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(logo.file, buffer)
         
-        with open(filepath, "wb") as buffer:
-            shutil.copyfileobj(logo.file, buffer)
-            
-        logo_url = f"/uploads/{filename}"
+    logo_url = f"/uploads/{filename}"
 
     new_restaurant = Restaurant(
         id=str(uuid.uuid4()),
         name=name,
         description=description,
         logo_url=logo_url,
-        is_active=True
+        is_active=True,
+        is_approved=False  # Requiere aprobación del administrador antes de ser visible a clientes
     )
     db.add(new_restaurant)
     await db.commit()
     await db.refresh(new_restaurant)
     return {
         "status": "success",
+        "message": "Restaurante registrado exitosamente. En espera de aprobación por la administración.",
         "restaurant_id": new_restaurant.id,
         "name": new_restaurant.name,
         "dashboard_url": f"/merchant-web/{new_restaurant.id}/dashboard"
     }
+
+@router.patch("/{restaurant_id}/approve")
+async def approve_restaurant(restaurant_id: str, db: AsyncSession = Depends(get_db)):
+    """Aprueba un restaurante para que sus productos sean visibles para todos los clientes."""
+    from sqlalchemy import update
+    query = update(Restaurant).where(Restaurant.id == restaurant_id).values(is_approved=True, is_active=True)
+    result = await db.execute(query)
+    await db.commit()
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Restaurante no encontrado")
+    return {"status": "success", "message": "Restaurante aprobado exitosamente."}
 
 @router.delete("/{restaurant_id}")
 async def delete_restaurant(restaurant_id: str, db: AsyncSession = Depends(get_db)):

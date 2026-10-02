@@ -69,6 +69,7 @@ async def create_order_with_payment(
 
     new_order = Order(
         client_id=client_id,
+        restaurant_id=restaurant_id,
         status="CREATED",
         payment_proof_url=f"/{file_path}",
         delivery_address=delivery_address, # Guardamos la dirección real del cliente

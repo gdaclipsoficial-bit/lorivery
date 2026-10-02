@@ -42,13 +42,18 @@ async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
             "selfie_url": courier.selfie_url,
         })
     
-    # 4. Todos los restaurantes y sus productos
-    rest_query = select(Restaurant).where(Restaurant.is_active == True)
+    # 4. Restaurantes pendientes de aprobación
+    pending_rest_q = select(Restaurant).where(Restaurant.is_approved == False)
+    pending_rest_res = await db.execute(pending_rest_q)
+    pending_restaurants = pending_rest_res.scalars().all()
+
+    # 5. Restaurantes aprobados y sus productos
+    rest_query = select(Restaurant).where(Restaurant.is_active == True, Restaurant.is_approved == True)
     rest_result = await db.execute(rest_query)
-    restaurants = rest_result.scalars().all()
+    approved_restaurants = rest_result.scalars().all()
     
     restaurants_data = []
-    for r in restaurants:
+    for r in approved_restaurants:
         prod_q = select(Product).where(Product.restaurant_id == r.id)
         prod_res = await db.execute(prod_q)
         products = prod_res.scalars().all()
@@ -68,6 +73,7 @@ async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
             "orders": orders,
             "active_orders": active_orders,
             "pending_couriers": pending_couriers,
+            "pending_restaurants": pending_restaurants,
             "restaurants": restaurants_data
         }
     )

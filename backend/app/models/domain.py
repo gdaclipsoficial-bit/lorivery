@@ -37,6 +37,7 @@ class Order(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     client_id = Column(String, ForeignKey("users.id"))
     courier_id = Column(String, ForeignKey("couriers.user_id"), nullable=True)
+    restaurant_id = Column(String, ForeignKey("restaurants.id"), nullable=True)
     status = Column(String, default="CREATED") # CREATED, READY, ASSIGNED...
     payment_proof_url = Column(String, nullable=True)
     
@@ -58,6 +59,7 @@ class Restaurant(Base):
     description = Column(String, nullable=True)
     logo_url = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
+    is_approved = Column(Boolean, default=False)  # Requiere aprobación del administrador
     # location = Column(Geography(geometry_type='POINT', srid=4326))
 
 class Product(Base):
