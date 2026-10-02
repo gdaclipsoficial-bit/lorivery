@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:chatbox/core/config/api_config.dart';
 import 'package:chatbox/services/features/restaurants/providers/restaurant_provider.dart';
 
@@ -38,20 +39,38 @@ class CheckoutScreen extends ConsumerWidget {
     }
   }
 
+  Future<Position?> _getLocation(BuildContext context) async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('⚠️ Activa el GPS de tu celular'), backgroundColor: Colors.orange),
+        );
+      }
+      return null;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('⚠️ Permiso de GPS necesario'), backgroundColor: Colors.orange),
+          );
+        }
+        return null;
+      }
+    }
+
+    return await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+    );
+  }
+
   Future<void> _confirmPayment(BuildContext context, WidgetRef ref) async {
     final imageFile = ref.read(receiptImageProvider);
     final bank = ref.read(selectedBankProvider);
-    final address = ref.read(deliveryAddressProvider).trim();
-
-    if (address.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('⚠️ Por favor ingresa la dirección de entrega en Lorica'),
-          backgroundColor: Colors.redAccent,
-        )
-      );
-      return;
-    }
 
     if (imageFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -68,6 +87,20 @@ class CheckoutScreen extends ConsumerWidget {
     ref.read(isVerifyingProvider.notifier).state = true;
     
     try {
+      // Capturar GPS real del cliente
+      final position = await _getLocation(context);
+      double lat = 9.2389;
+      double lng = -75.8139;
+      if (position != null) {
+        lat = position.latitude;
+        lng = position.longitude;
+      }
+
+      final rawAddress = ref.read(deliveryAddressProvider).trim();
+      final address = rawAddress.isNotEmpty
+          ? rawAddress
+          : 'Ubicación GPS (${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)})';
+
       final token = ref.read(authProvider).token;
       final uri = Uri.parse('${ApiConfig.baseUrl}/orders/');
       
@@ -78,8 +111,8 @@ class CheckoutScreen extends ConsumerWidget {
         ..fields['items_count'] = itemCount.toString()
         ..fields['bank'] = bank
         ..fields['delivery_address'] = address
-        ..fields['delivery_lat'] = '9.2312'
-        ..fields['delivery_lng'] = '-75.8123'
+        ..fields['delivery_lat'] = lat.toString()
+        ..fields['delivery_lng'] = lng.toString()
         ..fields['status'] = 'pending_payment';
 
       final mimeType = imageFile.path.toLowerCase().endsWith('.png') ? 'png' : 'jpeg';
@@ -189,12 +222,14 @@ class CheckoutScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Dirección de Entrega', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text('Dirección de Entrega (Opcional)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text('📍 Tu ubicación GPS exacta se incluirá automáticamente en la orden', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                 const SizedBox(height: 8),
                 TextField(
                   onChanged: (val) => ref.read(deliveryAddressProvider.notifier).state = val,
                   decoration: InputDecoration(
-                    hintText: 'Ej. Calle 15 #8-30, Barrio Remolino, Lorica',
+                    hintText: 'Barrio, casa o referencia (Opcional)',
                     prefixIcon: const Icon(Icons.location_on, color: Colors.redAccent),
                     filled: true,
                     fillColor: Colors.white,
