@@ -47,12 +47,16 @@ async def get_pending_restaurants(db: AsyncSession = Depends(get_db)):
 async def create_restaurant(
     name: str = Form(...),
     description: str = Form(None),
+    pin: str = Form(...),
     logo: UploadFile = File(...),
     db: AsyncSession = Depends(get_db)
 ):
-    """Crea un nuevo restaurante para la plataforma (requiere logo obligatorio y aprobación)."""
+    """Crea un nuevo restaurante con su PIN de acceso exclusivo y logo obligatorio."""
     if not logo or not logo.filename:
         raise HTTPException(status_code=400, detail="El logo o foto de la fachada es obligatorio.")
+
+    if not pin or len(pin.strip()) < 3:
+        raise HTTPException(status_code=400, detail="Debes definir una clave o PIN de al menos 3 dígitos para proteger tu negocio.")
 
     file_ext = logo.filename.split(".")[-1]
     filename = f"{uuid.uuid4()}.{file_ext}"
@@ -68,6 +72,7 @@ async def create_restaurant(
         name=name,
         description=description,
         logo_url=logo_url,
+        access_pin=pin.strip(),
         is_active=True,
         is_approved=False  # Requiere aprobación del administrador antes de ser visible a clientes
     )
@@ -81,6 +86,24 @@ async def create_restaurant(
         "name": new_restaurant.name,
         "dashboard_url": f"/merchant-web/{new_restaurant.id}/dashboard"
     }
+
+@router.post("/{restaurant_id}/verify-pin")
+async def verify_restaurant_pin(
+    restaurant_id: str,
+    pin: str = Form(...),
+    db: AsyncSession = Depends(get_db)
+):
+    """Verifica si el PIN ingresado coincide con el del restaurante."""
+    query = select(Restaurant).where(Restaurant.id == restaurant_id)
+    result = await db.execute(query)
+    restaurant = result.scalars().first()
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restaurante no encontrado")
+
+    if restaurant.access_pin != pin.strip():
+        raise HTTPException(status_code=401, detail="PIN o clave incorrecta")
+
+    return {"status": "success", "authenticated": True, "restaurant_id": restaurant.id}
 
 @router.patch("/{restaurant_id}/approve")
 async def approve_restaurant(restaurant_id: str, db: AsyncSession = Depends(get_db)):

@@ -60,6 +60,7 @@ class Restaurant(Base):
     logo_url = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     is_approved = Column(Boolean, default=False)  # Requiere aprobación del administrador
+    access_pin = Column(String, default="1234")  # Clave privada para administrar el menú y ver pedidos
     # location = Column(Geography(geometry_type='POINT', srid=4326))
 
 class Product(Base):

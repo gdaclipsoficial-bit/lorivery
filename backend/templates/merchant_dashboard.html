@@ -7,9 +7,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
+        body { background-color: #f8f9fa; font-family: system-ui, -apple-system, sans-serif; }
         .badge-pickup-code {
-            font-size: 1.6rem;
-            letter-spacing: 3px;
+            font-size: 2rem;
+            letter-spacing: 4px;
             font-weight: 800;
         }
         .product-img {
@@ -18,59 +19,96 @@
             object-fit: cover;
             border-radius: 12px;
         }
+        .lock-container {
+            max-width: 420px;
+            margin: 60px auto;
+        }
     </style>
 </head>
-<body class="bg-light">
+<body>
     <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-danger shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger shadow-sm py-3">
         <div class="container">
-            <span class="navbar-brand fw-bold fs-4">
-                <i class="bi bi-shop me-2"></i> {{ restaurant.name }} — Panel de Negocio
+            <span class="navbar-brand fw-bold fs-4 d-flex align-items-center">
+                <i class="bi bi-shop me-2"></i> {{ restaurant.name }}
             </span>
-            <span class="navbar-text text-white">
-                <i class="bi bi-geo-alt-fill text-warning"></i> Lorica Delivery Partner
-            </span>
+            <div class="d-flex align-items-center gap-2">
+                <a href="/dashboard" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Ir al Centro de Control
+                </a>
+                <button id="lockBtn" class="btn btn-dark btn-sm" onclick="lockMerchantPanel()" style="display:none;">
+                    <i class="bi bi-lock-fill me-1"></i> Bloquear
+                </button>
+            </div>
         </div>
     </nav>
 
-    <div class="container py-4">
+    <!-- VISTA DE BLOQUEO CON PIN -->
+    <div id="merchant-locked-view" class="lock-container text-center py-4">
+        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+            <div class="mb-3 text-danger fs-1">
+                <i class="bi bi-shield-lock-fill"></i>
+            </div>
+            <h4 class="fw-bold mb-1">Acceso Privado a "{{ restaurant.name }}"</h4>
+            <p class="text-muted small mb-4">Ingresa la clave o PIN de seguridad que definiste al registrar tu restaurante.</p>
+            
+            <form onsubmit="unlockMerchantPanel(event)">
+                <div class="mb-3">
+                    <input type="password" id="merchantPinInput" class="form-control form-control-lg text-center fw-bold" placeholder="PIN de Seguridad" required autofocus>
+                </div>
+                <button type="submit" class="btn btn-danger btn-lg w-100 fw-bold" id="unlockBtn">
+                    <i class="bi bi-unlock-fill me-1"></i> Entrar al Panel
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL (SOLO TRAS INGRESAR PIN) -->
+    <div id="merchant-content-view" class="container py-4" style="display: none;">
+        
         <!-- SECCIÓN 1: PEDIDOS ACTIVOS Y CÓDIGO DE RETIRO -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3><i class="bi bi-box-seam text-danger me-2"></i> Pedidos Activos para Entrega</h3>
+            <div>
+                <h3 class="fw-bold mb-0 text-dark"><i class="bi bi-box-seam text-danger me-2"></i> Pedidos Asignados a tu Restaurante</h3>
+                <small class="text-muted">Verifica el código de 4 dígitos antes de entregar la comida al domiciliario</small>
+            </div>
             <button class="btn btn-outline-secondary btn-sm" onclick="location.reload()">
-                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
             </button>
         </div>
 
-        <div class="row mb-5" id="orders-container">
+        <div class="row g-4 mb-5" id="orders-container">
             {% if orders %}
                 {% for order in orders %}
-                <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                            <span class="fw-bold">Orden #{{ order.id[:8] }}</span>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 border-start border-danger border-4">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center border-0 pt-3">
+                            <span class="fw-bold text-dark">Orden #{{ order.id[:8] }}</span>
                             <span class="badge bg-warning text-dark">{{ order.status }}</span>
                         </div>
                         <div class="card-body text-center">
-                            <p class="text-muted mb-1 small">Entregar al Domiciliario. Código de Verificación:</p>
+                            <p class="text-muted mb-1 small fw-bold text-uppercase">Código de Recogida para el Domiciliario:</p>
                             
-                            <!-- CÓDIGO DE VERIFICACIÓN -->
-                            <div class="p-2 my-2 bg-light border border-2 border-danger rounded">
+                            <!-- CÓDIGO DE RETIRO DESTACADO -->
+                            <div class="p-3 my-2 bg-light border border-2 border-danger rounded-4">
                                 <span class="badge-pickup-code text-danger">
                                     {{ order.pickup_code or order.delivery_code or '----' }}
                                 </span>
                             </div>
                             
-                            <p class="mb-1 text-start"><strong>Dirección:</strong> {{ order.delivery_address or 'Barrio Centro, Lorica' }}</p>
-                            <p class="mb-0 text-start text-muted small">Verifica que el motorizado diga este código antes de entregar el paquete.</p>
+                            <p class="mb-1 text-start small"><strong>Destino:</strong> {{ order.delivery_address or 'Barrio Centro, Lorica' }}</p>
+                            <div class="alert alert-warning text-start small p-2 mt-2 mb-0">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i> El repartidor debe decirte este número exacto para retirar el pedido.
+                            </div>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="col-12 text-center py-4 bg-white rounded shadow-sm">
-                    <i class="bi bi-check2-circle text-success fs-1"></i>
-                    <h5 class="mt-2 text-muted">No tienes pedidos activos pendientes por despachar en este momento.</h5>
+                <div class="col-12 text-center py-5 bg-white rounded-4 shadow-sm">
+                    <i class="bi bi-check2-circle text-success display-4"></i>
+                    <h5 class="mt-3 fw-bold text-dark">No tienes pedidos pendientes por despachar</h5>
+                    <p class="text-muted small mb-0">Cuando un cliente ordene platos de tu menú, aparecerán aquí con su código de recogida.</p>
                 </div>
             {% endif %}
         </div>
@@ -80,31 +118,31 @@
         <!-- SECCIÓN 2: GESTIÓN FÁCIL DEL MENÚ / PRODUCTOS -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h3 class="mb-0"><i class="bi bi-journal-richtext text-danger me-2"></i> Menú de Productos</h3>
-                <small class="text-muted">Publica tus platos para que los clientes puedan pedir desde la app</small>
+                <h3 class="fw-bold mb-0 text-dark"><i class="bi bi-journal-richtext text-danger me-2"></i> Menú de Productos y Precios</h3>
+                <small class="text-muted">Publica y administra los platos disponibles en la app de clientes</small>
             </div>
             <button class="btn btn-danger fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#newProductModal">
-                <i class="bi bi-plus-lg me-1"></i> Publicar Nuevo Producto
+                <i class="bi bi-plus-lg me-1"></i> Publicar Nuevo Plato
             </button>
         </div>
 
         <!-- LISTADO DE PRODUCTOS -->
-        <div class="row" id="products-container">
+        <div class="row g-4" id="products-container">
             {% if products %}
                 {% for p in products %}
-                <div class="col-md-6 mb-3">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-body d-flex align-items-center">
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 rounded-4 h-100">
+                        <div class="card-body d-flex align-items-center p-3">
                             {% if p.image_url %}
-                                <img src="{{ p.image_url }}" class="product-img me-3" alt="{{ p.name }}">
+                                <img src="{{ p.image_url }}" class="product-img me-3 border" alt="{{ p.name }}">
                             {% else %}
-                                <div class="product-img bg-secondary bg-opacity-25 me-3 d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-card-image fs-3 text-muted"></i>
+                                <div class="product-img bg-secondary bg-opacity-10 me-3 d-flex align-items-center justify-content-center text-danger fs-3">
+                                    <i class="bi bi-cup-hot"></i>
                                 </div>
                             {% endif %}
                             
                             <div class="flex-grow-1">
-                                <h5 class="mb-1 fw-bold">{{ p.name }}</h5>
+                                <h5 class="mb-1 fw-bold text-dark">{{ p.name }}</h5>
                                 <p class="text-muted small mb-1">{{ p.description or 'Sin descripción' }}</p>
                                 <span class="fw-bold text-success fs-5">${{ "{:,.0f}".format(p.price) }} COP</span>
                             </div>
@@ -114,11 +152,11 @@
                                     <input class="form-check-input" type="checkbox" role="switch" id="switch-{{ p.id }}"
                                            {% if p.is_available %}checked{% endif %}
                                            onchange="toggleProduct('{{ p.id }}')">
-                                    <label class="form-check-label small" for="switch-{{ p.id }}">
+                                    <label class="form-check-label small d-block" for="switch-{{ p.id }}">
                                         {% if p.is_available %}Disponible{% else %}Agotado{% endif %}
                                     </label>
                                 </div>
-                                <button class="btn btn-outline-danger btn-sm border-0" onclick="deleteProduct('{{ p.id }}')">
+                                <button class="btn btn-outline-danger btn-sm border-0" onclick="deleteProduct('{{ p.id }}')" title="Eliminar plato">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </div>
@@ -127,10 +165,10 @@
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="col-12 text-center py-5 bg-white rounded shadow-sm">
-                    <i class="bi bi-basket text-muted fs-1"></i>
-                    <h5 class="mt-2 text-muted">Aún no has publicado productos en tu menú.</h5>
-                    <p class="text-muted small">Presiona "Publicar Nuevo Producto" para empezar a vender.</p>
+                <div class="col-12 text-center py-5 bg-white rounded-4 shadow-sm">
+                    <i class="bi bi-basket text-muted display-4 mb-2"></i>
+                    <h5 class="fw-bold text-dark">Aún no has publicado productos en tu menú</h5>
+                    <p class="text-muted small">Presiona "Publicar Nuevo Plato" para empezar a vender.</p>
                 </div>
             {% endif %}
         </div>
@@ -139,19 +177,19 @@
     <!-- MODAL PARA CREAR PRODUCTO -->
     <div class="modal fade" id="newProductModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content border-0 shadow">
+            <div class="modal-content border-0 shadow rounded-4">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i> Publicar Nuevo Producto</h5>
+                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i> Publicar Nuevo Plato</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="createProductForm" onsubmit="saveProduct(event)">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Nombre del Producto / Plato</label>
+                            <label class="form-label fw-bold">Nombre del Plato / Producto <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="name" placeholder="Ej. Hamburguesa Doble Carne" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Precio (COP)</label>
+                            <label class="form-label fw-bold">Precio (COP) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" name="price" placeholder="Ej. 18000" step="500" required>
                         </div>
                         <div class="mb-3">
@@ -159,14 +197,14 @@
                             <textarea class="form-control" name="description" rows="2" placeholder="Ej. Con queso mozzarella, tocineta y papas a la francesa"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Foto del Producto (Opcional)</label>
+                            <label class="form-label fw-bold">Foto del Plato (Opcional)</label>
                             <input type="file" class="form-control" name="image" accept="image/*">
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-danger fw-bold" id="submitBtn">
-                            <i class="bi bi-cloud-upload me-1"></i> Publicar Producto
+                            <i class="bi bi-cloud-upload me-1"></i> Publicar Plato
                         </button>
                     </div>
                 </form>
@@ -177,6 +215,57 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const RESTAURANT_ID = "{{ restaurant.id }}";
+        const SESSION_KEY = "lorivery_merchant_unlocked_" + RESTAURANT_ID;
+
+        // VERIFICAR PIN DE ACCESO
+        function checkMerchantAuth() {
+            if (sessionStorage.getItem(SESSION_KEY) === "true") {
+                document.getElementById("merchant-locked-view").style.display = "none";
+                document.getElementById("merchant-content-view").style.display = "block";
+                document.getElementById("lockBtn").style.display = "inline-block";
+            } else {
+                document.getElementById("merchant-locked-view").style.display = "block";
+                document.getElementById("merchant-content-view").style.display = "none";
+                document.getElementById("lockBtn").style.display = "none";
+            }
+        }
+
+        async function unlockMerchantPanel(e) {
+            e.preventDefault();
+            const pin = document.getElementById("merchantPinInput").value.trim();
+            const btn = document.getElementById("unlockBtn");
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Verificando...';
+
+            try {
+                const formData = new FormData();
+                formData.append("pin", pin);
+
+                const res = await fetch(`/api/restaurants/${RESTAURANT_ID}/verify-pin`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (res.ok) {
+                    sessionStorage.setItem(SESSION_KEY, "true");
+                    checkMerchantAuth();
+                } else {
+                    alert("PIN o clave incorrecta para este restaurante.");
+                    document.getElementById("merchantPinInput").value = "";
+                }
+            } catch (err) {
+                alert("Error de conexión");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-unlock-fill me-1"></i> Entrar al Panel';
+            }
+        }
+
+        function lockMerchantPanel() {
+            sessionStorage.removeItem(SESSION_KEY);
+            checkMerchantAuth();
+        }
 
         // CREAR PRODUCTO
         async function saveProduct(e) {
@@ -195,7 +284,7 @@
                 });
 
                 if (response.ok) {
-                    alert("¡Producto publicado exitosamente en tu menú!");
+                    alert("¡Plato publicado exitosamente en tu menú!");
                     location.reload();
                 } else {
                     const err = await response.json();
@@ -206,7 +295,7 @@
                 alert("Error de red conectando con el servidor");
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i> Publicar Producto';
+                submitBtn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i> Publicar Plato';
             }
         }
 
@@ -216,35 +305,28 @@
                 const response = await fetch(`/api/restaurants/products/${productId}/toggle`, {
                     method: 'PATCH'
                 });
-                if (response.ok) {
-                    location.reload();
-                } else {
-                    alert("No se pudo cambiar el estado del producto.");
-                }
+                if (!response.ok) alert("No se pudo cambiar el estado del producto.");
             } catch (e) {
-                console.error(e);
                 alert("Error de conexión");
             }
         }
 
         // ELIMINAR PRODUCTO
         async function deleteProduct(productId) {
-            if (!confirm("¿Estás seguro de que deseas eliminar este producto de tu menú?")) return;
-
+            if (!confirm("¿Estás seguro de que deseas eliminar este plato de tu menú?")) return;
             try {
                 const response = await fetch(`/api/restaurants/products/${productId}`, {
                     method: 'DELETE'
                 });
-                if (response.ok) {
-                    location.reload();
-                } else {
-                    alert("Error eliminando el producto");
-                }
+                if (response.ok) location.reload();
+                else alert("Error eliminando el plato");
             } catch (e) {
-                console.error(e);
                 alert("Error de conexión");
             }
         }
+
+        // Inicializar estado de autenticación
+        checkMerchantAuth();
     </script>
 </body>
 </html>
