@@ -6,10 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../home/home_screen.dart';
-import 'package:chatbox/features/client/presentation/screens/order_tracking_screen.dart';
+import 'package:chatbox/services/features/client/presentation/screens/order_tracking_screen.dart';
 import 'package:chatbox/core/config/api_config.dart';
-import 'package:chatbox/features/auth/presentation/screens/auth_screen.dart';
+import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 
 final receiptImageProvider = StateProvider<File?>((ref) => null);
 final isVerifyingProvider = StateProvider<bool>((ref) => false);
@@ -24,6 +25,44 @@ class PaymentTransferScreen extends ConsumerWidget {
     if (pickedFile != null) {
       ref.read(receiptImageProvider.notifier).state = File(pickedFile.path);
     }
+  }
+
+  /// Obtiene la ubicación GPS actual del dispositivo
+  Future<Position?> _getLocation(BuildContext context) async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('⚠️ Activa el GPS de tu dispositivo'), backgroundColor: Colors.orange),
+        );
+      }
+      return null;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('⚠️ Permiso de ubicación denegado'), backgroundColor: Colors.orange),
+          );
+        }
+        return null;
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('⚠️ Permiso permanentemente denegado. Actívalo en Ajustes.'), backgroundColor: Colors.red),
+        );
+      }
+      return null;
+    }
+
+    return await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+    );
   }
 
   Future<void> _confirmPayment(BuildContext context, WidgetRef ref) async {
@@ -41,18 +80,25 @@ class PaymentTransferScreen extends ConsumerWidget {
     }
 
     ref.read(isVerifyingProvider.notifier).state = true;
-    
+
+    // Obtener ubicación GPS real
+    final position = await _getLocation(context);
+    if (position == null) {
+      ref.read(isVerifyingProvider.notifier).state = false;
+      return;
+    }
+
     try {
       final token = ref.read(authProvider).token;
-      
+
       final uri = Uri.parse('${ApiConfig.baseUrl}/orders/');
-      
+
       final request = http.MultipartRequest('POST', uri)
         ..headers['Authorization'] = 'Bearer $token'
         ..fields['restaurant_id'] = 'rest_001'
-        ..fields['delivery_address'] = 'Barrio Centro, Lorica'
-        ..fields['delivery_lat'] = '9.2312'
-        ..fields['delivery_lng'] = '-75.8123'
+        ..fields['delivery_address'] = 'Ubicación GPS (${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)})'
+        ..fields['delivery_lat'] = position.latitude.toString()
+        ..fields['delivery_lng'] = position.longitude.toString()
         ..fields['total_amount'] = '5500.0';
 
       final mimeType = imageFile.path.toLowerCase().endsWith('.png') ? 'png' : 'jpeg';

@@ -52,6 +52,11 @@ class WebSocketService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void reconnect({String orderId = 'demo_order'}) {
+    disconnect();
+    connect(orderId: orderId);
+  }
+
   void clearPendingOrder() {
     _pendingOrder = null;
     notifyListeners();

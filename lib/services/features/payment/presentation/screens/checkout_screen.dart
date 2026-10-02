@@ -7,10 +7,10 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:chatbox/core/config/api_config.dart';
-import 'package:chatbox/features/restaurants/providers/restaurant_provider.dart';
+import 'package:chatbox/services/features/restaurants/providers/restaurant_provider.dart';
 
-import 'package:chatbox/features/client/presentation/screens/order_tracking_screen.dart';
-import 'package:chatbox/features/auth/presentation/screens/auth_screen.dart';
+import 'package:chatbox/services/features/client/presentation/screens/order_tracking_screen.dart';
+import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 
 // Usamos autoDispose para que el carrito se limpie si el usuario vuelve atrás
 final receiptImageProvider = StateProvider.autoDispose<File?>((ref) => null);

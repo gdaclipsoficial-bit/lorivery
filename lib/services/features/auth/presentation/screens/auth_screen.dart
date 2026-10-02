@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:chatbox/features/home/home_screen.dart';
-import 'package:chatbox/features/courier/presentation/screens/radar_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:chatbox/services/features/home/home_screen.dart';
+import 'package:chatbox/services/features/courier/presentation/screens/radar_screen.dart';
 import 'package:chatbox/core/config/api_config.dart';
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) => AuthNotifier());
@@ -22,13 +23,39 @@ class AuthState {
 }
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier() : super(const AuthState());
-
-  void setSession(String token, String role, String name, String userId) {
-    state = AuthState(token: token, role: role, name: name, userId: userId);
+  AuthNotifier() : super(const AuthState()) {
+    _loadSession();
   }
 
-  void logout() => state = const AuthState();
+  /// Carga la sesión guardada al iniciar la app
+  Future<void> _loadSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final role = prefs.getString('auth_role');
+    final name = prefs.getString('auth_name');
+    final userId = prefs.getString('auth_user_id');
+    if (token != null && role != null && name != null && userId != null) {
+      state = AuthState(token: token, role: role, name: name, userId: userId);
+    }
+  }
+
+  Future<void> setSession(String token, String role, String name, String userId) async {
+    state = AuthState(token: token, role: role, name: name, userId: userId);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', token);
+    await prefs.setString('auth_role', role);
+    await prefs.setString('auth_name', name);
+    await prefs.setString('auth_user_id', userId);
+  }
+
+  Future<void> logout() async {
+    state = const AuthState();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
+    await prefs.remove('auth_role');
+    await prefs.remove('auth_name');
+    await prefs.remove('auth_user_id');
+  }
 }
 
 class AuthScreen extends ConsumerStatefulWidget {
@@ -69,6 +96,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with SingleTickerProvid
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    // Chequear sesión guardada y redirigir automáticamente
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final role = prefs.getString('auth_role');
+      final name = prefs.getString('auth_name');
+      final userId = prefs.getString('auth_user_id');
+      if (token != null && role != null && name != null && userId != null) {
+        ref.read(authProvider.notifier).setSession(token, role, name, userId);
+        if (mounted) _navigateByRole(role);
+      }
+    });
   }
 
   @override

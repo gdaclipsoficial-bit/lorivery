@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:chatbox/features/restaurants/providers/restaurant_provider.dart';
+import 'package:chatbox/services/features/restaurants/providers/restaurant_provider.dart';
 import 'package:chatbox/core/config/api_config.dart';
 // Importamos la pantalla del menú real
 import 'restaurant_menu_screen.dart'; 
@@ -24,16 +24,36 @@ class RestaurantsScreen extends ConsumerWidget {
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {
+              ref.invalidate(restaurantsProvider);
+            },
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Actualizar',
+          ),
+        ],
       ),
-      body: ref.watch(restaurantsProvider).when(
-        data: (restaurants) {
-          if (restaurants.isEmpty) {
-            return const Center(child: Text('No hay restaurantes disponibles.'));
-          }
-          return ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(20),
-            itemCount: restaurants.length,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(restaurantsProvider);
+          await ref.read(restaurantsProvider.future);
+        },
+        child: ref.watch(restaurantsProvider).when(
+          data: (restaurants) {
+            if (restaurants.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                children: const [
+                  SizedBox(height: 200),
+                  Center(child: Text('No hay restaurantes disponibles.')),
+                ],
+              );
+            }
+            return ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+              padding: const EdgeInsets.all(20),
+              itemCount: restaurants.length,
             itemBuilder: (context, index) {
               final restaurant = restaurants[index];
               return Container(
@@ -142,6 +162,7 @@ class RestaurantsScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
       ),
-    );
+    ),
+  );
   }
 }

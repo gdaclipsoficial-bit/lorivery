@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chatbox/theme/app_theme.dart';
-import 'package:chatbox/features/auth/presentation/screens/auth_screen.dart';
+import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 import 'package:chatbox/core/config/api_config.dart';
 
 /// Entry point para la App del CLIENTE

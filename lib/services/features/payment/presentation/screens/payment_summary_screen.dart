@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../database/db_helper.dart';
+import 'package:chatbox/database/db_helper.dart';
 
 // --- PROVEEDORES DE ESTADO (Riverpod) ---
 final receiptImageProvider = StateProvider<File?>((ref) => null);

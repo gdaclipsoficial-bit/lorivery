@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:chatbox/core/config/api_config.dart';
-import 'package:chatbox/features/auth/presentation/screens/auth_screen.dart';
+import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 
 class ActiveTripScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> orderData;

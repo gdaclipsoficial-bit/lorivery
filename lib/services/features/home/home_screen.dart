@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../map/map_quote_screen.dart';
 import 'package:chatbox/services/websocket_service.dart';
-import 'package:chatbox/features/restaurants/providers/restaurant_provider.dart';
+import 'package:chatbox/services/features/restaurants/providers/restaurant_provider.dart';
 import 'package:chatbox/core/config/api_config.dart';
-import 'package:chatbox/features/auth/presentation/screens/auth_screen.dart';
+import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 import '../restaurants/restaurants_screen.dart'; 
 import '../restaurants/restaurant_menu_screen.dart';
 
@@ -40,11 +40,11 @@ class HomeScreen extends ConsumerWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: colorScheme.primary, width: 2),
                 ),
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   backgroundColor: Colors.white,
                   child: Text(
-                    'DL',
-                    style: TextStyle(
+                    (authState.name ?? 'U').split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase(),
+                    style: const TextStyle(
                       color: Colors.black87,
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
@@ -93,93 +93,117 @@ class HomeScreen extends ConsumerWidget {
       ),
 
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // --- HEADER ESTILO APPLE (LARGE TITLE) ---
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Builder(
-                          builder: (context) => GestureDetector(
-                            onTap: () => Scaffold.of(context).openDrawer(),
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.03),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  )
-                                ],
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(restaurantsProvider);
+            await ref.read(restaurantsProvider.future);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // --- HEADER ESTILO APPLE (LARGE TITLE) ---
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Builder(
+                            builder: (context) => GestureDetector(
+                              onTap: () => Scaffold.of(context).openDrawer(),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.03),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    )
+                                  ],
+                                ),
+                                child: const Icon(Icons.menu_rounded, size: 22, color: Colors.black87),
                               ),
-                              child: const Icon(Icons.menu_rounded, size: 22, color: Colors.black87),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 14),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'LORICA',
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 11,
-                                color: Colors.grey.shade500,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.2,
+                          const SizedBox(width: 14),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'LORIVERY',
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade500,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.2,
+                                ),
                               ),
-                            ),
-                            const Text(
-                              'Hola, Daniel 👋',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black,
-                                letterSpacing: -0.4,
+                              Text(
+                                'Hola, ${authState.name?.split(' ').first ?? 'Usuario'} 👋',
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.black,
+                                  letterSpacing: -0.4,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    // Avatar minimalista
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          )
+                            ],
+                          ),
                         ],
                       ),
-                      child: CircleAvatar(
-                        radius: 20,
-                        backgroundColor: Colors.white,
-                        child: Text(
-                          'DL',
-                          style: TextStyle(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                      // Refresh button y Avatar
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              ref.invalidate(restaurantsProvider);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('⚡ Lista de restaurantes actualizada'),
+                                  duration: Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.refresh_rounded, size: 22, color: Colors.black87),
+                            tooltip: 'Actualizar',
                           ),
-                        ),
+                          const SizedBox(width: 4),
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                )
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Colors.white,
+                              child: Text(
+                                (authState.name ?? 'U').split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase(),
+                                style: TextStyle(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
               const SizedBox(height: 12),
 
               // --- BANNER PROMOCIONAL LIMPIO ---

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:chatbox/core/config/api_config.dart';
-import 'package:chatbox/features/auth/presentation/screens/auth_screen.dart';
+import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 
 class CourierProfileScreen extends ConsumerStatefulWidget {
   const CourierProfileScreen({Key? key}) : super(key: key);

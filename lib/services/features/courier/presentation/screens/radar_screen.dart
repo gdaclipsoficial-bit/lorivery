@@ -9,9 +9,9 @@ import 'package:latlong2/latlong.dart';
 import 'package:chatbox/services/websocket_service.dart';
 import 'package:chatbox/services/location_service.dart';
 import 'package:chatbox/core/config/api_config.dart';
-import 'package:chatbox/features/auth/presentation/screens/auth_screen.dart';
-import 'package:chatbox/features/courier/presentation/screens/active_trip_screen.dart';
-import 'package:chatbox/features/courier/presentation/screens/courier_profile_screen.dart' as profile;
+import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
+import 'package:chatbox/services/features/courier/presentation/screens/active_trip_screen.dart';
+import 'package:chatbox/services/features/courier/presentation/screens/courier_profile_screen.dart' as profile;
 import 'package:flutter/services.dart';
 
 class RadarScreen extends ConsumerStatefulWidget {
@@ -238,11 +238,36 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(right: 16.0, bottom: 16.0),
-                  child: FloatingActionButton(
-                    heroTag: 'center_location_fab',
-                    backgroundColor: Colors.white,
-                    onPressed: _centerMap,
-                    child: const Icon(Icons.my_location, color: Colors.black87),
+                  child: Column(
+                    children: [
+                      FloatingActionButton.small(
+                        heroTag: 'refresh_radar_fab',
+                        backgroundColor: Colors.white,
+                        onPressed: () async {
+                          await _initLocationTracking();
+                          if (wsService.isConnected) {
+                            ref.read(webSocketServiceProvider).reconnect();
+                          }
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('⚡ Radar y GPS re-sincronizados'),
+                                duration: Duration(seconds: 1),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        },
+                        child: const Icon(Icons.refresh, color: Colors.black87),
+                      ),
+                      const SizedBox(height: 10),
+                      FloatingActionButton(
+                        heroTag: 'center_location_fab',
+                        backgroundColor: Colors.white,
+                        onPressed: _centerMap,
+                        child: const Icon(Icons.my_location, color: Colors.black87),
+                      ),
+                    ],
                   ),
                 ),
                 Container(
