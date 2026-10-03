@@ -245,7 +245,7 @@ class _OrderChatModalState extends ConsumerState<OrderChatModal> {
                       ],
                     ),
                     child: Column(
-                      crossAxisAlignment: isMe ? CrossAlignment.end : CrossAlignment.start,
+                      crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                       children: [
                         Text(
                           msg['message'],
