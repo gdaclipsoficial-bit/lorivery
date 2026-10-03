@@ -52,3 +52,5 @@ backend/app/__pycache__/
 *.pyc
 backend/uploads/*
 !backend/uploads/.gitkeep
+!backend/uploads/apks/
+!backend/uploads/apks/*

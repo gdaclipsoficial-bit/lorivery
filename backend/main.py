@@ -43,11 +43,21 @@ app.include_router(api_restaurants.router)
 app.include_router(couriers.router)
 app.include_router(merchant_web.router)
 
-from fastapi.responses import RedirectResponse
+from fastapi import Request
+from fastapi.templating import Jinja2Templates
+
+templates = Jinja2Templates(directory="templates")
 
 @app.get("/")
-async def root():
+async def root(request: Request):
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept or "*/*" in accept:
+        return templates.TemplateResponse(request=request, name="landing.html")
     return {"message": "Lorica Delivery API en línea", "status": "active"}
+
+@app.get("/download")
+async def download_page(request: Request):
+    return templates.TemplateResponse(request=request, name="landing.html")
 
 @app.get("/dashboard")
 async def dashboard_redirect():

@@ -31,15 +31,44 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-danger shadow-sm">
         <div class="container">
             <span class="navbar-brand fw-bold fs-4">
-                <i class="bi bi-shop me-2"></i> Lorivery — Portal de Comercios y Restaurantes
+                <i class="bi bi-shop me-2"></i> Lorivery — Portal de Comercios
             </span>
-            <span class="navbar-text text-white">
-                <i class="bi bi-geo-alt-fill text-warning"></i> Lorica, Córdoba
-            </span>
+            <div class="d-flex align-items-center gap-3">
+                <a href="/download" class="btn btn-warning btn-sm fw-bold rounded-pill px-3 shadow-sm text-dark">
+                    <i class="bi bi-download me-1"></i> Descargar Apps (.apk)
+                </a>
+                <span class="navbar-text text-white d-none d-md-inline">
+                    <i class="bi bi-geo-alt-fill text-warning"></i> Lorica, Córdoba
+                </span>
+            </div>
         </div>
     </nav>
 
-    <div class="container py-5">
+    <div class="container py-4">
+        <!-- BANNER DESCARGA DE APPS -->
+        <div class="card border-0 rounded-4 shadow-sm mb-4 text-white overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #dc2626 100%);">
+            <div class="card-body p-4 p-md-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-warning text-dark fw-bold me-2"><i class="bi bi-android2 me-1"></i> Apps Oficiales Android</span>
+                            <small class="text-white-50">Lorivery Lorica</small>
+                        </div>
+                        <h4 class="fw-bold mb-1 text-white">¿Tienes un teléfono Android? ¡Descarga las aplicaciones oficiales!</h4>
+                        <p class="text-white-50 small mb-0">Descarga la app de cliente para pedir o la de repartidores si prestas servicio de domicilio.</p>
+                    </div>
+                    <div class="col-md-4 text-end mt-3 mt-md-0 d-flex gap-2 justify-content-md-end">
+                        <a href="/uploads/apks/Lorica-Cliente.apk" download="Lorica-Cliente.apk" class="btn btn-danger btn-sm fw-bold rounded-pill shadow">
+                            <i class="bi bi-download me-1"></i> App Cliente
+                        </a>
+                        <a href="/uploads/apks/Lorica-Repartidor.apk" download="Lorica-Repartidor.apk" class="btn btn-warning btn-sm text-dark fw-bold rounded-pill shadow">
+                            <i class="bi bi-download me-1"></i> App Repartidor
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- HEADER -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
