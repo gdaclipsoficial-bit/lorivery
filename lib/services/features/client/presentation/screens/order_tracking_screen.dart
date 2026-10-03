@@ -288,8 +288,8 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                               },
                               icon: Container(
                                 padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(color: primaryColor.withValues(alpha: 0.1), shape: BoxShape.circle),
-                                child: Icon(Icons.chat_bubble_rounded, color: primaryColor, size: 20),
+                                decoration: BoxDecoration(color: theme.colorScheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+                                child: Icon(Icons.chat_bubble_rounded, color: theme.colorScheme.primary, size: 20),
                               ),
                               tooltip: 'Chat con Repartidor',
                             ),

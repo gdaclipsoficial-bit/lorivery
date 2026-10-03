@@ -395,7 +395,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with SingleTickerProvid
                         Text(
                           isCourierApp ? 'Portal de domiciliarios autorizados' : 'Domicilios rápidos en todo Lorica',
                           style: const TextStyle(
-                            color: Colors.white90,
+                            color: Colors.white70,
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),

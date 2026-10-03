@@ -264,7 +264,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                               isScrollControlled: true,
                               backgroundColor: Colors.transparent,
                               builder: (_) => OrderChatModal(
-                                orderId: orderId.toString(),
+                                orderId: widget.orderData['order_id']?.toString() ?? '',
                                 otherPartyName: 'Cliente',
                                 otherPartyPhone: '3000000000',
                                 userRole: 'COURIER',
