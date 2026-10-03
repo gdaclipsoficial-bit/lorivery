@@ -1,12 +1,65 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from app.core.database import get_db
 from app.models.domain import Order, Courier, User, Restaurant, Product, SupportTicket
 
 router = APIRouter(prefix="/admin-web", tags=["Admin Web"])
 templates = Jinja2Templates(directory="templates")
+
+@router.get("/api/stats")
+async def get_admin_stats(db: AsyncSession = Depends(get_db)):
+    """Retorna métricas y contadores de usuarios y repartidores en tiempo real."""
+    # 1. Total usuarios
+    u_res = await db.execute(select(func.count(User.id)))
+    total_users = u_res.scalar() or 0
+
+    # 2. Total clientes
+    c_res = await db.execute(select(func.count(User.id)).where(User.role == 'CLIENT'))
+    total_clients = c_res.scalar() or 0
+
+    # 3. Total repartidores
+    cour_res = await db.execute(select(func.count(Courier.user_id)))
+    total_couriers = cour_res.scalar() or 0
+
+    # 4. Repartidores aprobados y disponibles
+    cour_app_res = await db.execute(select(func.count(Courier.user_id)).where(Courier.is_approved == True))
+    approved_couriers = cour_app_res.scalar() or 0
+
+    cour_pend_res = await db.execute(select(func.count(Courier.user_id)).where(Courier.is_approved == False))
+    pending_couriers_count = cour_pend_res.scalar() or 0
+
+    cour_avail_res = await db.execute(select(func.count(Courier.user_id)).where(Courier.is_available == True))
+    active_couriers = cour_avail_res.scalar() or 0
+
+    # 5. Restaurantes
+    r_app_res = await db.execute(select(func.count(Restaurant.id)).where(Restaurant.is_approved == True, Restaurant.is_active == True))
+    approved_restaurants = r_app_res.scalar() or 0
+
+    r_pend_res = await db.execute(select(func.count(Restaurant.id)).where(Restaurant.is_approved == False))
+    pending_restaurants_count = r_pend_res.scalar() or 0
+
+    # 6. Órdenes
+    o_pend_res = await db.execute(select(func.count(Order.id)).where(Order.status == 'CREATED'))
+    pending_orders_count = o_pend_res.scalar() or 0
+
+    o_act_res = await db.execute(select(func.count(Order.id)).where(Order.status.in_(['APPROVED_BY_ADMIN', 'READY', 'ASSIGNED', 'PICKED_UP'])))
+    active_orders_count = o_act_res.scalar() or 0
+
+    return {
+        "status": "success",
+        "total_users": total_users,
+        "total_clients": total_clients,
+        "total_couriers": total_couriers,
+        "approved_couriers": approved_couriers,
+        "pending_couriers_count": pending_couriers_count,
+        "active_couriers": active_couriers,
+        "approved_restaurants": approved_restaurants,
+        "pending_restaurants_count": pending_restaurants_count,
+        "pending_orders_count": pending_orders_count,
+        "active_orders_count": active_orders_count,
+    }
 
 @router.get("/dashboard")
 async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
@@ -70,6 +123,22 @@ async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
     ticket_q = select(SupportTicket).order_by(SupportTicket.id.desc())
     ticket_res = await db.execute(ticket_q)
     support_tickets = ticket_res.scalars().all()
+
+    # 7. Estadísticas y Contadores para el panel
+    u_res = await db.execute(select(func.count(User.id)))
+    total_users = u_res.scalar() or 0
+
+    c_res = await db.execute(select(func.count(User.id)).where(User.role == 'CLIENT'))
+    total_clients = c_res.scalar() or 0
+
+    cour_res = await db.execute(select(func.count(Courier.user_id)))
+    total_couriers = cour_res.scalar() or 0
+
+    cour_app_res = await db.execute(select(func.count(Courier.user_id)).where(Courier.is_approved == True))
+    approved_couriers_count = cour_app_res.scalar() or 0
+
+    cour_avail_res = await db.execute(select(func.count(Courier.user_id)).where(Courier.is_available == True))
+    active_couriers_count = cour_avail_res.scalar() or 0
     
     return templates.TemplateResponse(
         request=request,
@@ -80,7 +149,17 @@ async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
             "pending_couriers": pending_couriers,
             "pending_restaurants": pending_restaurants,
             "restaurants": restaurants_data,
-            "support_tickets": support_tickets
+            "support_tickets": support_tickets,
+            "stats": {
+                "total_users": total_users,
+                "total_clients": total_clients,
+                "total_couriers": total_couriers,
+                "approved_couriers": approved_couriers_count,
+                "active_couriers": active_couriers_count,
+                "approved_restaurants": len(approved_restaurants),
+                "pending_restaurants": len(pending_restaurants),
+                "pending_orders": len(orders),
+                "active_orders": len(active_orders)
+            }
         }
     )
-

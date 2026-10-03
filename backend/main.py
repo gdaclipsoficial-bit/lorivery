@@ -18,11 +18,34 @@ import app.models.domain  # noqa: F401
 
 app = FastAPI(title="Lorica Delivery MVP Backend")
 
+from sqlalchemy import text
+
 @app.on_event("startup")
 async def on_startup():
-    """Crea las tablas en la BD si no existen (auto-migrate en Render)."""
+    """Crea las tablas en la BD si no existen (auto-migrate en Render) y aplica columnas faltantes."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Migraciones de columnas adicionales
+        try:
+            await conn.execute(text('ALTER TABLE orders ADD COLUMN IF NOT EXISTS courier_rating FLOAT;'))
+            await conn.execute(text('ALTER TABLE orders ADD COLUMN IF NOT EXISTS courier_feedback VARCHAR;'))
+            await conn.execute(text('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_address VARCHAR;'))
+            await conn.execute(text('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_fee FLOAT DEFAULT 0.0;'))
+            await conn.execute(text('ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_code VARCHAR(4);'))
+            await conn.execute(text('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_code VARCHAR(4);'))
+            await conn.execute(text('ALTER TABLE orders ADD COLUMN IF NOT EXISTS restaurant_id VARCHAR;'))
+            await conn.execute(text('ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS access_pin VARCHAR DEFAULT \'1234\';'))
+            await conn.execute(text('ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT FALSE;'))
+            await conn.execute(text('ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;'))
+            await conn.execute(text('ALTER TABLE couriers ADD COLUMN IF NOT EXISTS id_front_url VARCHAR;'))
+            await conn.execute(text('ALTER TABLE couriers ADD COLUMN IF NOT EXISTS id_back_url VARCHAR;'))
+            await conn.execute(text('ALTER TABLE couriers ADD COLUMN IF NOT EXISTS selfie_url VARCHAR;'))
+            await conn.execute(text('ALTER TABLE couriers ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT FALSE;'))
+            await conn.execute(text('ALTER TABLE couriers ADD COLUMN IF NOT EXISTS phone_number VARCHAR;'))
+            await conn.execute(text('ALTER TABLE couriers ADD COLUMN IF NOT EXISTS national_id VARCHAR;'))
+            await conn.execute(text('ALTER TABLE couriers ADD COLUMN IF NOT EXISTS rating FLOAT DEFAULT 5.0;'))
+        except Exception as ex:
+            print(f"[STARTUP MIGRATION WARNING] {ex}")
 
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
