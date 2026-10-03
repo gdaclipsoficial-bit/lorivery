@@ -250,42 +250,155 @@ async def get_courier_profile(
         "rating": 4.9
     }
 
+@router.get("/my-orders")
+async def get_client_orders(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Obtiene el historial de pedidos del cliente autenticado.
+    """
+    client_id = current_user["sub"]
+    query = text("""
+        SELECT o.id, o.status, o.delivery_address, o.delivery_fee, o.delivery_code,
+               r.name as restaurant_name, r.logo_url as restaurant_logo
+        FROM orders o
+        LEFT JOIN restaurants r ON o.restaurant_id = r.id
+        WHERE o.client_id = :cid
+        ORDER BY o.id DESC
+    """)
+    result = await db.execute(query, {"cid": client_id})
+    rows = result.fetchall()
+
+    history = []
+    for row in rows:
+        o_id, status, addr, fee, code, r_name, r_logo = row
+        history.append({
+            "order_id": str(o_id),
+            "status": status,
+            "delivery_address": addr or "Lorica",
+            "delivery_fee": fee or 3000,
+            "delivery_code": code,
+            "restaurant_name": r_name or "Restaurante Local",
+            "restaurant_logo": r_logo
+        })
+
+    return {"status": "success", "orders": history}
+
+@router.get("/courier/history")
+async def get_courier_orders_history(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(require_courier)
+):
+    """
+    Obtiene el historial de pedidos entregados y asignados del repartidor autenticado.
+    """
+    courier_id = current_user["sub"]
+    query = text("""
+        SELECT o.id, o.status, o.delivery_address, o.delivery_fee, o.pickup_code, o.delivery_code,
+               r.name as restaurant_name, u.name as client_name
+        FROM orders o
+        LEFT JOIN restaurants r ON o.restaurant_id = r.id
+        LEFT JOIN users u ON o.client_id = u.id
+        WHERE o.courier_id = :cid
+        ORDER BY o.id DESC
+    """)
+    result = await db.execute(query, {"cid": courier_id})
+    rows = result.fetchall()
+
+    history = []
+    for row in rows:
+        o_id, status, addr, fee, p_code, d_code, r_name, c_name = row
+        history.append({
+            "order_id": str(o_id),
+            "status": status,
+            "delivery_address": addr or "Lorica",
+            "delivery_fee": fee or 3000,
+            "pickup_code": p_code,
+            "delivery_code": d_code,
+            "restaurant_name": r_name or "Restaurante Local",
+            "client_name": c_name or "Cliente"
+        })
+
+    return {"status": "success", "orders": history}
+
+class ChatMessage(BaseModel):
+    message: str
+    sender_role: str # CLIENT o COURIER
+
+@router.post("/{order_id}/chat")
+async def send_order_chat_message(
+    order_id: str,
+    payload: ChatMessage,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Retransmite un mensaje de chat entre el cliente y el repartidor a través del WebSocket de la orden.
+    """
+    msg_data = {
+        "type": "CHAT_MESSAGE",
+        "order_id": order_id,
+        "sender_id": current_user["sub"],
+        "sender_name": current_user.get("name", "Usuario"),
+        "sender_role": payload.sender_role,
+        "message": payload.message,
+        "timestamp": "Ahora"
+    }
+    await manager.broadcast_to_room(room_id=order_id, message=msg_data)
+    return {"status": "success", "data": msg_data}
+
 @router.get("/{order_id}")
 async def get_order_tracking(
     order_id: str, 
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    query = text("SELECT id, status, delivery_code, courier_id, delivery_address FROM orders WHERE id = :id")
+    query = text("""
+        SELECT o.id, o.status, o.delivery_code, o.pickup_code, o.courier_id, o.delivery_address,
+               u.name as client_name, r.name as restaurant_name
+        FROM orders o
+        LEFT JOIN users u ON o.client_id = u.id
+        LEFT JOIN restaurants r ON o.restaurant_id = r.id
+        WHERE o.id = :id
+    """)
     result = await db.execute(query, {"id": order_id})
     order = result.fetchone()
 
     if not order:
         raise HTTPException(status_code=404, detail="Orden no encontrada")
 
-    o_id, o_status, o_delivery_code, o_courier_id, o_delivery_address = order
+    o_id, o_status, o_delivery_code, o_pickup_code, o_courier_id, o_delivery_address, c_name, r_name = order
 
     response_data = {
         "order_id": str(o_id),
         "status": o_status,
         "delivery_code": o_delivery_code,
+        "pickup_code": o_pickup_code,
         "delivery_address": o_delivery_address or "Barrio Centro, Lorica",
-        "restaurant_name": "Asados de Lorica",
+        "restaurant_name": r_name or "Restaurante Local",
         "restaurant_address": "Calle Principal #10-20, Lorica",
+        "client_name": c_name or "Cliente",
+        "client_phone": "3000000000",
         "courier": None
     }
 
     if o_courier_id:
-        courier_query = text("SELECT id, name FROM users WHERE id = :courier_id")
+        courier_query = text("""
+            SELECT u.name, c.phone_number, c.vehicle_type
+            FROM users u
+            LEFT JOIN couriers c ON u.id = c.user_id
+            WHERE u.id = :courier_id
+        """)
         courier_result = await db.execute(courier_query, {"courier_id": o_courier_id})
         courier = courier_result.fetchone()
 
         if courier:
-            c_id, c_name = courier
+            name, phone, v_type = courier
             response_data["courier"] = {
-                "name": c_name,
-                "vehicle_model": "Suzuki GN 125",
-                "plate": "ABC-123",
+                "name": name or "Repartidor",
+                "phone_number": phone or "3001234567",
+                "vehicle_model": "Motocicleta" if v_type == "MOTORCYCLE" else "Bicicleta",
+                "plate": "LOR-123",
                 "photo_url": "/static/default_avatar.png"
             }
 
