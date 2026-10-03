@@ -55,6 +55,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await prefs.remove('auth_role');
     await prefs.remove('auth_name');
     await prefs.remove('auth_user_id');
+    await prefs.clear(); // Garantiza limpieza total de SharedPreferences
+  }
+
+  static Future<void> performLogout(BuildContext context, WidgetRef ref) async {
+    await ref.read(authProvider.notifier).logout();
+    if (context.mounted) {
+      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AuthScreen()),
+        (route) => false,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('👋 Sesión cerrada correctamente'),
+          backgroundColor: Colors.blueAccent,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 }
 

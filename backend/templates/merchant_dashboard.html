@@ -84,7 +84,13 @@
                     <div class="card shadow-sm border-0 rounded-4 h-100 border-start border-danger border-4">
                         <div class="card-header bg-white d-flex justify-content-between align-items-center border-0 pt-3">
                             <span class="fw-bold text-dark">Orden #{{ order.id[:8] }}</span>
-                            <span class="badge bg-warning text-dark">{{ order.status }}</span>
+                            {% if order.status == 'APPROVED_BY_ADMIN' %}
+                                <span class="badge bg-primary"><i class="bi bi-check-all me-1"></i> Pago Aprobado</span>
+                            {% elif order.status == 'READY' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i> Preparado / Listo</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">{{ order.status }}</span>
+                            {% endif %}
                         </div>
                         <div class="card-body text-center">
                             <p class="text-muted mb-1 small fw-bold text-uppercase">Código de Recogida para el Domiciliario:</p>
@@ -97,9 +103,19 @@
                             </div>
                             
                             <p class="mb-1 text-start small"><strong>Destino:</strong> {{ order.delivery_address or 'Barrio Centro, Lorica' }}</p>
-                            <div class="alert alert-warning text-start small p-2 mt-2 mb-0">
-                                <i class="bi bi-exclamation-triangle-fill me-1"></i> El repartidor debe decirte este número exacto para retirar el pedido.
-                            </div>
+                            
+                            {% if order.status == 'APPROVED_BY_ADMIN' %}
+                                <div class="alert alert-info text-start small p-2 mt-2 mb-2">
+                                    <i class="bi bi-info-circle-fill me-1"></i> El pago fue verificado por el administrador. Cuando termines de preparar la comida, presiona el botón de abajo.
+                                </div>
+                                <button class="btn btn-danger w-100 fw-bold shadow-sm py-2" onclick="markOrderAsReady('{{ order.id }}')">
+                                    <i class="bi bi-fire me-1"></i> 🍳 Marcar como Preparado
+                                </button>
+                            {% else %}
+                                <div class="alert alert-warning text-start small p-2 mt-2 mb-0">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> El repartidor debe decirte este número exacto para retirar el pedido.
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -322,6 +338,25 @@
                 else alert("Error eliminando el plato");
             } catch (e) {
                 alert("Error de conexión");
+            }
+        }
+
+        // MARCAR PEDIDO COMO PREPARADO
+        async function markOrderAsReady(orderId) {
+            if (!confirm("¿Confirmar que la comida ya está totalmente preparada y lista para entregar al domiciliario?")) return;
+            try {
+                const response = await fetch(`/api/restaurants/orders/${orderId}/ready`, {
+                    method: 'PATCH'
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert("✅ ¡Excelente! Pedido marcado como preparado. Se ha alertado automáticamente a todos los repartidores.");
+                    location.reload();
+                } else {
+                    alert("Error: " + (data.detail || "No se pudo actualizar la orden."));
+                }
+            } catch (e) {
+                alert("Error de conexión con el servidor");
             }
         }
 

@@ -36,12 +36,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   }
 
   void _logout(BuildContext context) {
-    ref.invalidate(authProvider);
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const AuthScreen()),
-      (route) => false,
-    );
+    AuthNotifier.performLogout(context, ref);
   }
 
   Future<void> _updateOrderStatus(String nextStatus, {String? pickupCode, String? deliveryCode}) async {

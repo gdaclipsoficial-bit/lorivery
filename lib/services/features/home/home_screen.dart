@@ -8,6 +8,7 @@ import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.
 import '../restaurants/restaurants_screen.dart'; 
 import '../restaurants/restaurant_menu_screen.dart';
 import '../client/presentation/screens/order_history_screen.dart';
+import 'package:chatbox/services/features/support/support_modal.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -79,6 +80,20 @@ class HomeScreen extends ConsumerWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const ClientOrderHistoryScreen()));
               },
             ),
+            _buildDrawerItem(
+              icon: Icons.support_agent_rounded, 
+              title: 'Soporte y Ayuda', 
+              iconColor: Colors.blueAccent,
+              onTap: () {
+                Navigator.pop(context);
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => const SupportHelpModal(),
+                );
+              },
+            ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Divider(),
@@ -88,14 +103,7 @@ class HomeScreen extends ConsumerWidget {
               title: 'Cerrar Sesión', 
               textColor: Colors.red,
               iconColor: Colors.red,
-              onTap: () {
-                ref.invalidate(authProvider);
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AuthScreen()),
-                  (route) => false,
-                );
-              },
+              onTap: () => AuthNotifier.performLogout(context, ref),
             ),
           ],
         ),

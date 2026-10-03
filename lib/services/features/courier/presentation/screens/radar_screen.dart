@@ -13,6 +13,8 @@ import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.
 import 'package:chatbox/services/features/courier/presentation/screens/active_trip_screen.dart';
 import 'package:chatbox/services/features/courier/presentation/screens/courier_profile_screen.dart' as profile;
 import 'package:chatbox/services/features/courier/presentation/screens/courier_history_screen.dart';
+import 'package:chatbox/services/features/support/support_modal.dart';
+import 'package:chatbox/core/widgets/app_notification_banner.dart';
 import 'package:flutter/services.dart';
 
 class RadarScreen extends ConsumerStatefulWidget {
@@ -193,14 +195,24 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
                 );
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.support_agent_rounded, color: Colors.blueAccent),
+              title: const Text('Soporte y Ayuda'),
+              onTap: () {
+                Navigator.pop(context);
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => const SupportHelpModal(),
+                );
+              },
+            ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                ref.read(authProvider.notifier).logout();
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
-              },
+              onTap: () => AuthNotifier.performLogout(context, ref),
             ),
           ],
         ),
@@ -481,6 +493,19 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
   void _showIncomingOrderBottomSheet(Map<String, dynamic> orderData) {
     if (!mounted || _isSheetOpen) return;
     _isSheetOpen = true;
+
+    // Alerta auditiva/háptica y Notificación flotante de nuevo pedido
+    HapticFeedback.vibrate();
+    SystemSound.play(SystemSoundType.click);
+
+    AppNotificationBanner.show(
+      context,
+      title: '🚨 ¡NUEVO PEDIDO EN LORICA!',
+      message: '${orderData['restaurant'] ?? 'Restaurante'} -> ${orderData['destination'] ?? 'Cliente'} (${orderData['earnings'] ?? '\$3.000 COP'})',
+      icon: Icons.motorcycle_rounded,
+      accentColor: Colors.orangeAccent,
+    );
+
     showModalBottomSheet(
       context: context,
       isDismissible: false,

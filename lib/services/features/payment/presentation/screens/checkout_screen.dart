@@ -104,10 +104,14 @@ class CheckoutScreen extends ConsumerWidget {
       final token = ref.read(authProvider).token;
       final uri = Uri.parse('${ApiConfig.baseUrl}/orders/');
       
+      const double deliveryFee = 3000.0; // Domicilio urbano Lorica ($3.000 - $5.000 COP)
+      final double grandTotal = totalAmount + deliveryFee;
+
       final request = http.MultipartRequest('POST', uri)
         ..headers['Authorization'] = 'Bearer $token'
         ..fields['restaurant_id'] = restaurant.id.toString()
-        ..fields['total_amount'] = totalAmount.toString()
+        ..fields['total_amount'] = grandTotal.toString()
+        ..fields['delivery_fee'] = deliveryFee.toString()
         ..fields['items_count'] = itemCount.toString()
         ..fields['bank'] = bank
         ..fields['delivery_address'] = address
@@ -248,12 +252,30 @@ class CheckoutScreen extends ConsumerWidget {
                   ),
                   child: Column(
                     children: [
-                      Text('Total a Transferir ($itemCount items)', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
-                      const SizedBox(height: 8),
-                      Text('\$${totalAmount.toStringAsFixed(0)}', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
-                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Subtotal ($itemCount items):', style: const TextStyle(color: Colors.black54, fontSize: 14)),
+                          Text('\$${totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('🛵 Domicilio Lorica (GPS):', style: TextStyle(color: Colors.black54, fontSize: 14)),
+                          Text('\$3.000 COP', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 15)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
                       const Divider(thickness: 1),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 8),
+                      Text('Total a Transferir', style: TextStyle(color: Colors.grey.shade700, fontSize: 15, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text('\$${(totalAmount + 3000).toStringAsFixed(0)}', style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
+                      const SizedBox(height: 16),
+                      const Divider(thickness: 1),
+                      const SizedBox(height: 16),
                       _BankSelectorTile(
                         bankName: 'Nequi', account: '300 123 4567',
                         iconData: Icons.phone_android_rounded,

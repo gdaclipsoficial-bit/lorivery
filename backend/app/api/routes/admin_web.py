@@ -3,21 +3,21 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.database import get_db
-from app.models.domain import Order, Courier, User, Restaurant, Product
+from app.models.domain import Order, Courier, User, Restaurant, Product, SupportTicket
 
 router = APIRouter(prefix="/admin-web", tags=["Admin Web"])
 templates = Jinja2Templates(directory="templates")
 
 @router.get("/dashboard")
 async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
-    """Panel Central Unificado: Comercios, Menús, Despachos y Seguridad."""
+    """Panel Central Unificado: Comercios, Menús, Despachos, Soporte y Seguridad."""
     # 1. Órdenes pendientes de pago (CREATED)
     query = select(Order).where(Order.status == 'CREATED')
     result = await db.execute(query)
     orders = result.scalars().all()
     
-    # 2. Órdenes activas en curso (READY, ASSIGNED, PICKED_UP)
-    active_query = select(Order).where(Order.status.in_(['READY', 'ASSIGNED', 'PICKED_UP']))
+    # 2. Órdenes activas en curso (APPROVED_BY_ADMIN, READY, ASSIGNED, PICKED_UP)
+    active_query = select(Order).where(Order.status.in_(['APPROVED_BY_ADMIN', 'READY', 'ASSIGNED', 'PICKED_UP']))
     active_result = await db.execute(active_query)
     active_orders = active_result.scalars().all()
     
@@ -65,6 +65,11 @@ async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
             "products_count": len(products),
             "products": products
         })
+
+    # 6. Tickets de Soporte
+    ticket_q = select(SupportTicket).order_by(SupportTicket.id.desc())
+    ticket_res = await db.execute(ticket_q)
+    support_tickets = ticket_res.scalars().all()
     
     return templates.TemplateResponse(
         request=request,
@@ -74,7 +79,8 @@ async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
             "active_orders": active_orders,
             "pending_couriers": pending_couriers,
             "pending_restaurants": pending_restaurants,
-            "restaurants": restaurants_data
+            "restaurants": restaurants_data,
+            "support_tickets": support_tickets
         }
     )
 

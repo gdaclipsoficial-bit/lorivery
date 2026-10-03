@@ -403,3 +403,101 @@ async def get_order_tracking(
             }
 
     return response_data
+
+class CourierRatingRequest(BaseModel):
+    rating: float
+    feedback: str | None = None
+
+@router.post("/{order_id}/rate")
+async def rate_courier(
+    order_id: str,
+    payload: CourierRatingRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Califica al repartidor de un pedido entregado y actualiza su calificación promedio.
+    """
+    from app.models.domain import Courier
+
+    res = await db.execute(select(Order).where(Order.id == order_id))
+    order = res.scalars().first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Pedido no encontrado")
+
+    if not order.courier_id:
+        raise HTTPException(status_code=400, detail="Este pedido no tiene repartidor asignado")
+
+    order.courier_rating = payload.rating
+    order.courier_feedback = payload.feedback
+
+    avg_res = await db.execute(
+        select(func.avg(Order.courier_rating)).where(
+            Order.courier_id == order.courier_id,
+            Order.courier_rating.isnot(None)
+        )
+    )
+    new_avg = avg_res.scalar() or payload.rating
+
+    c_res = await db.execute(select(Courier).where(Courier.user_id == order.courier_id))
+    courier = c_res.scalars().first()
+    if courier:
+        courier.rating = round(float(new_avg), 1)
+
+    await db.commit()
+    return {"status": "success", "message": "Calificación registrada con éxito", "rating": payload.rating}
+
+class SupportTicketRequest(BaseModel):
+    subject: str
+    description: str
+
+@router.post("/{order_id}/support")
+async def create_order_support_ticket(
+    order_id: str,
+    payload: SupportTicketRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Crea una queja o solicitud de ayuda para un pedido.
+    """
+    from app.models.domain import SupportTicket
+    import datetime
+
+    ticket = SupportTicket(
+        order_id=order_id,
+        user_id=current_user["sub"],
+        subject=payload.subject,
+        description=payload.description,
+        status="OPEN",
+        created_at=datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    )
+    db.add(ticket)
+    await db.commit()
+    await db.refresh(ticket)
+
+    return {"status": "success", "message": "Ticket de soporte creado exitosamente", "ticket_id": ticket.id}
+
+@router.get("/support/all-tickets")
+async def get_support_tickets(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Obtiene los tickets de soporte del usuario o todos si es admin.
+    """
+    from app.models.domain import SupportTicket
+    query = select(SupportTicket).order_by(SupportTicket.id.desc())
+    res = await db.execute(query)
+    tickets = res.scalars().all()
+    return [
+        {
+            "id": t.id,
+            "order_id": t.order_id,
+            "subject": t.subject,
+            "description": t.description,
+            "status": t.status,
+            "created_at": t.created_at
+        }
+        for t in tickets
+    ]

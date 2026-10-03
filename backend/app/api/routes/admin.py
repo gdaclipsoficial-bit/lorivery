@@ -10,52 +10,37 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 @router.patch("/orders/{order_id}/approve")
 async def approve_order_payment(order_id: str, db: AsyncSession = Depends(get_db)):
     """
-    1. Aprueba el pago de Nequi y pasa la orden a READY.
-    2. Obtiene los datos del restaurante y destino.
-    3. Envía SIEMPRE el WebSocket Broadcast a los repartidores para que les llegue a su app inmediatamente.
+    1. Aprueba el pago de Nequi/Efectivo y pasa la orden a APPROVED_BY_ADMIN.
+    2. Notifica al cliente y envía el pedido al panel del restaurante.
     """
-    # 1. Aprobar la Orden
     query = (
         update(Order)
         .where(Order.id == order_id)
-        .values(status='READY')
+        .values(status='APPROVED_BY_ADMIN')
         .returning(Order)
     )
     result = await db.execute(query)
     updated_order = result.fetchone()
     
     if not updated_order:
-        raise HTTPException(status_code=404, detail="Orden no encontrada o no está en estado CREATED")
+        raise HTTPException(status_code=404, detail="Orden no encontrada")
         
     order = updated_order[0]
     await db.commit()
 
-    # 2. Obtener el nombre del restaurante real
-    restaurant_name = "Restaurante Local"
-    if order.restaurant_id:
-        res_r = await db.execute(text("SELECT name FROM restaurants WHERE id = :rid"), {"rid": order.restaurant_id})
-        r_row = res_r.fetchone()
-        if r_row:
-            restaurant_name = r_row[0]
-
-    # 3. Lanzar SIEMPRE el Broadcast a la sala general "demo_order" (Radar de todos los repartidores)
-    fee = order.delivery_fee or 3000
-
+    # Notificar al cliente vía WebSocket
     await manager.broadcast_to_room(
-        room_id="demo_order",
+        room_id=order_id,
         message={
-            "type": "NEW_ORDER",
-            "order_id": order.id,
-            "restaurant": restaurant_name,
-            "destination": order.delivery_address or "Cliente Lorica",
-            "earnings": f"${fee:,.0f} COP",
-            "distance": "Calculada por GPS"
+            "type": "STATUS_UPDATE",
+            "status": "APPROVED_BY_ADMIN",
+            "message": "¡Pago verificado por administración! Tu pedido fue enviado al restaurante."
         }
     )
 
     return {
         "status": "success", 
-        "message": "Pago aprobado y orden transmitida a todos los repartidores en tiempo real"
+        "message": "Pago aprobado. Pedido enviado al restaurante para su preparación."
     }
 
 @router.get("/couriers/pending")

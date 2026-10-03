@@ -7,6 +7,8 @@ import 'package:chatbox/core/config/api_config.dart';
 import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 import 'package:chatbox/services/features/chat/order_chat_dialog.dart';
 import 'package:chatbox/services/websocket_service.dart';
+import 'package:chatbox/services/features/support/support_modal.dart';
+import 'package:chatbox/services/features/rating/courier_rating_modal.dart';
 
 class OrderTrackingScreen extends ConsumerStatefulWidget {
   final String orderId;
@@ -27,19 +29,16 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
   @override
   void initState() {
     super.initState();
-    // 1. Conectar al WebSocket del pedido para actualizaciones en tiempo real
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(webSocketServiceProvider).connectToOrder(widget.orderId);
     });
-    // 2. Cargar inmediatamente al abrir la pantalla
     _fetchOrderData();
     
-    // 3. Consultar a FastAPI cada 5 segundos por actualizaciones reales
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (_currentStep < 6) {
         _fetchOrderData();
       } else {
-        timer.cancel(); // Si ya se entregó, dejamos de consultar
+        timer.cancel();
       }
     });
   }
@@ -47,7 +46,6 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
   Future<void> _fetchOrderData() async {
     try {
       final token = ref.read(authProvider).token;
-      
       final uri = Uri.parse('${ApiConfig.baseUrl}/orders/${widget.orderId}');
       
       final response = await http.get(
@@ -66,7 +64,6 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
             }
             _isLoading = false;
             
-            // Normalizamos a minúsculas para que coincida perfectamente sin importar cómo lo envíe FastAPI
             final status = data['status']?.toString().toLowerCase() ?? '';
             
             switch (status) {
@@ -74,7 +71,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                 _currentStep = 0;
                 break;
               case 'created':
-              case 'approved':
+              case 'approved_by_admin':
               case 'ready':
                 _currentStep = 1;
                 break;
@@ -113,15 +110,29 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
             Text('¡Pedido Entregado!'),
           ],
         ),
-        content: const Text('Tu pedido ha sido entregado con éxito. ¡Esperamos que lo disfrutes!'),
+        content: const Text('Tu pedido ha sido entregado con éxito. ¡Esperamos que lo disfrutes! ¿Cómo estuvo la atención de tu repartidor?'),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext, rootNavigator: true).pop();
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => CourierRatingModal(
+                  orderId: widget.orderId,
+                  courierName: _courier?['name'] ?? 'Repartidor',
+                ),
+              );
+            },
+            child: const Text('⭐ Calificar Repartidor', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber)),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () {
-              // Cierra el diálogo y regresa limpiamente al inicio guardado en la pila
               Navigator.of(dialogContext, rootNavigator: true).pop();
               Navigator.of(context).popUntil((route) => route.isFirst);
             },
@@ -149,7 +160,21 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        automaticallyImplyLeading: false, 
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.support_agent_rounded, color: Colors.redAccent),
+            tooltip: 'Soporte y Ayuda',
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => SupportHelpModal(orderId: widget.orderId),
+              );
+            },
+          ),
+        ],
       ),
       body: _isLoading 
         ? Center(child: CircularProgressIndicator(color: theme.colorScheme.primary))

@@ -51,6 +51,8 @@ class Order(Base):
     delivery_fee = Column(Float, default=0.0)
     pickup_code = Column(String(4), nullable=True)
     delivery_code = Column(String(4), nullable=True)
+    courier_rating = Column(Float, nullable=True)
+    courier_feedback = Column(String, nullable=True)
 
 class Restaurant(Base):
     __tablename__ = "restaurants"
@@ -72,3 +74,13 @@ class Product(Base):
     price = Column(Float, nullable=False)
     image_url = Column(String, nullable=True)
     is_available = Column(Boolean, default=True)
+
+class SupportTicket(Base):
+    __tablename__ = "support_tickets"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    order_id = Column(String, ForeignKey("orders.id"), nullable=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    subject = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    status = Column(String, default="OPEN") # OPEN, IN_PROGRESS, RESOLVED
+    created_at = Column(String, nullable=True)

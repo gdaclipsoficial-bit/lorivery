@@ -213,3 +213,66 @@ async def delete_product(product_id: str, db: AsyncSession = Depends(get_db)):
     await db.commit()
     return {"status": "success", "message": "Producto eliminado"}
 
+@router.patch("/orders/{order_id}/ready")
+async def mark_order_ready(order_id: str, db: AsyncSession = Depends(get_db)):
+    """
+    El restaurante confirma que la comida ya está preparada.
+    1. Cambia el estado del pedido a READY.
+    2. Transmite el pedido al radar de repartidores (demo_order).
+    3. Notifica al cliente por WebSocket.
+    """
+    from sqlalchemy import update, text
+    from app.models.domain import Order
+    from app.websockets.connection_manager import manager
+
+    query = (
+        update(Order)
+        .where(Order.id == order_id)
+        .values(status='READY')
+        .returning(Order)
+    )
+    result = await db.execute(query)
+    updated_order = result.fetchone()
+
+    if not updated_order:
+        raise HTTPException(status_code=404, detail="Orden no encontrada")
+
+    order = updated_order[0]
+    await db.commit()
+
+    # Obtener nombre del restaurante
+    restaurant_name = "Restaurante Local"
+    if order.restaurant_id:
+        res_r = await db.execute(text("SELECT name FROM restaurants WHERE id = :rid"), {"rid": order.restaurant_id})
+        r_row = res_r.fetchone()
+        if r_row:
+            restaurant_name = r_row[0]
+
+    fee = order.delivery_fee or 3000
+
+    # 1. Notificar al cliente
+    await manager.broadcast_to_room(
+        room_id=order_id,
+        message={
+            "type": "STATUS_UPDATE",
+            "status": "READY",
+            "message": "¡Tu pedido está preparado! Buscando repartidor en Lorica..."
+        }
+    )
+
+    # 2. Transmitir al RADAR DE REPARTIDORES recién ahora que el restaurante lo marcó listo
+    await manager.broadcast_to_room(
+        room_id="demo_order",
+        message={
+            "type": "NEW_ORDER",
+            "order_id": order.id,
+            "restaurant": restaurant_name,
+            "destination": order.delivery_address or "Cliente Lorica",
+            "earnings": f"${fee:,.0f} COP",
+            "distance": "Calculada por GPS"
+        }
+    )
+
+    return {"status": "success", "message": "Pedido marcado como preparado y transmitido a repartidores"}
+
+

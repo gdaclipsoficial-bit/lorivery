@@ -141,6 +141,12 @@ class _CourierProfileScreenState extends ConsumerState<CourierProfileScreen> {
                     title: const Text('Calificación'),
                     subtitle: Text('${_profile!['rating']} / 5.0'),
                   ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.logout, color: Colors.red),
+                    title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                    onTap: () => AuthNotifier.performLogout(context, ref),
+                  ),
                 ],
               ),
             ),
