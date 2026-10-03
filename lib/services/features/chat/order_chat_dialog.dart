@@ -46,6 +46,10 @@ class _OrderChatModalState extends ConsumerState<OrderChatModal> {
   @override
   void initState() {
     super.initState();
+    // Conectar al WebSocket del pedido específico para recibir mensajes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(webSocketServiceProvider).connectToOrder(widget.orderId);
+    });
     // Mensaje de bienvenida inicial
     _messages.add({
       'sender_role': widget.userRole == 'CLIENT' ? 'COURIER' : 'CLIENT',
@@ -139,18 +143,24 @@ class _OrderChatModalState extends ConsumerState<OrderChatModal> {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final quickReplies = widget.userRole == 'CLIENT' ? _quickRepliesClient : _quickRepliesCourier;
 
-    // Escuchar mensajes en tiempo real desde el WebSocket global
+    // Escuchar mensajes de chat en tiempo real desde el WebSocket del pedido
     ref.listen<WebSocketService>(webSocketServiceProvider, (prev, next) {
-      if (next.lastLocationData != null && next.lastLocationData!['type'] == 'CHAT_MESSAGE') {
-        final data = next.lastLocationData!;
-        if (data['sender_role'] != widget.userRole) {
+      final chat = next.lastChatMessage;
+      if (chat != null && chat['type'] == 'CHAT_MESSAGE') {
+        // Solo mostrar si el mensaje es del otro participante y es para este pedido
+        if (chat['sender_role'] != widget.userRole &&
+            (chat['order_id'] == null || chat['order_id'] == widget.orderId)) {
           setState(() {
             _messages.add({
-              'sender_role': data['sender_role'],
-              'sender_name': data['sender_name'] ?? widget.otherPartyName,
-              'message': data['message'],
+              'sender_role': chat['sender_role'],
+              'sender_name': chat['sender_name'] ?? widget.otherPartyName,
+              'message': chat['message'],
               'time': 'Ahora',
             });
+          });
+          // Limpiar para no volver a procesar el mismo mensaje
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(webSocketServiceProvider).clearLastChatMessage();
           });
         }
       }

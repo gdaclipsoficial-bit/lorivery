@@ -108,7 +108,7 @@ async def get_available_orders(
         SELECT o.id, o.restaurant_id, o.delivery_address, o.delivery_fee, r.name as restaurant_name
         FROM orders o
         LEFT JOIN restaurants r ON o.restaurant_id = r.id
-        WHERE (o.status = 'READY' OR o.status = 'APPROVED' OR o.status = 'CREATED')
+        WHERE o.status = 'READY'
           AND o.courier_id IS NULL
         ORDER BY o.id DESC
     """)

@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:chatbox/core/config/api_config.dart';
 import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 import 'package:chatbox/services/features/chat/order_chat_dialog.dart';
+import 'package:chatbox/services/websocket_service.dart';
 
 class ActiveTripScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> orderData;
@@ -21,6 +22,18 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   final MapController _mapController = MapController();
   bool _isLoading = false;
   String _currentStatus = 'READY'; 
+
+  @override
+  void initState() {
+    super.initState();
+    // Conectar al WebSocket del pedido para chat en tiempo real
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final orderId = widget.orderData['order_id']?.toString() ?? '';
+      if (orderId.isNotEmpty) {
+        ref.read(webSocketServiceProvider).connectToOrder(orderId);
+      }
+    });
+  }
 
   void _logout(BuildContext context) {
     ref.invalidate(authProvider);

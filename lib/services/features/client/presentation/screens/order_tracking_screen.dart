@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chatbox/core/config/api_config.dart';
 import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 import 'package:chatbox/services/features/chat/order_chat_dialog.dart';
+import 'package:chatbox/services/websocket_service.dart';
 
 class OrderTrackingScreen extends ConsumerStatefulWidget {
   final String orderId;
@@ -26,15 +27,19 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
   @override
   void initState() {
     super.initState();
-    // 1. Cargar inmediatamente al abrir la pantalla[cite: 7, 8]
+    // 1. Conectar al WebSocket del pedido para actualizaciones en tiempo real
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(webSocketServiceProvider).connectToOrder(widget.orderId);
+    });
+    // 2. Cargar inmediatamente al abrir la pantalla
     _fetchOrderData();
     
-    // 2. Consultar a FastAPI cada 5 segundos por actualizaciones reales[cite: 7, 8]
+    // 3. Consultar a FastAPI cada 5 segundos por actualizaciones reales
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (_currentStep < 6) {
         _fetchOrderData();
       } else {
-        timer.cancel(); // Si ya se entregó, dejamos de consultar[cite: 7, 8]
+        timer.cancel(); // Si ya se entregó, dejamos de consultar
       }
     });
   }
