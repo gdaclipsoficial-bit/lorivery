@@ -147,89 +147,6 @@
 
     <div class="container py-4">
 
-        <!-- ========================================================================= -->
-        <!-- MÉTRICAS Y CONTADORES EN TIEMPO REAL (USUARIOS, REPARTIDORES Y NEGOCIOS)   -->
-        <!-- ========================================================================= -->
-        <div class="row g-3 mb-4" id="stats-summary-grid">
-            <!-- 1. Total Usuarios -->
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="card card-custom p-3 text-center h-100 border-0 shadow-sm" style="background: #FFFFFF;">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <span class="p-2 rounded-circle bg-dark text-white d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                            <i class="bi bi-people-fill"></i>
-                        </span>
-                    </div>
-                    <div class="fs-4 fw-extrabold text-dark" id="stat-total-users">{{ stats.total_users if stats else 0 }}</div>
-                    <div class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Usuarios Totales</div>
-                </div>
-            </div>
-
-            <!-- 2. Clientes -->
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="card card-custom p-3 text-center h-100 border-0 shadow-sm" style="background: #FFFFFF;">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <span class="p-2 rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                            <i class="bi bi-person-heart"></i>
-                        </span>
-                    </div>
-                    <div class="fs-4 fw-extrabold text-danger" id="stat-total-clients">{{ stats.total_clients if stats else 0 }}</div>
-                    <div class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Clientes</div>
-                </div>
-            </div>
-
-            <!-- 3. Repartidores -->
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="card card-custom p-3 text-center h-100 border-0 shadow-sm" style="background: #FFFFFF;">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <span class="p-2 rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                            <i class="bi bi-bicycle"></i>
-                        </span>
-                    </div>
-                    <div class="fs-4 fw-extrabold text-primary" id="stat-total-couriers">{{ stats.total_couriers if stats else 0 }}</div>
-                    <div class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Repartidores</div>
-                </div>
-            </div>
-
-            <!-- 4. Repartidores Aprobados -->
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="card card-custom p-3 text-center h-100 border-0 shadow-sm" style="background: #FFFFFF;">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <span class="p-2 rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                            <i class="bi bi-shield-check"></i>
-                        </span>
-                    </div>
-                    <div class="fs-4 fw-extrabold text-success" id="stat-approved-couriers">{{ stats.approved_couriers if stats else 0 }}</div>
-                    <div class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Repartidores KYC</div>
-                </div>
-            </div>
-
-            <!-- 5. Restaurantes Aprobados -->
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="card card-custom p-3 text-center h-100 border-0 shadow-sm" style="background: #FFFFFF;">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <span class="p-2 rounded-circle bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                            <i class="bi bi-shop"></i>
-                        </span>
-                    </div>
-                    <div class="fs-4 fw-extrabold text-dark" id="stat-total-restaurants">{{ stats.approved_restaurants if stats else 0 }}</div>
-                    <div class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Restaurantes</div>
-                </div>
-            </div>
-
-            <!-- 6. Órdenes Activas -->
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="card card-custom p-3 text-center h-100 border-0 shadow-sm" style="background: #FFFFFF;">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <span class="p-2 rounded-circle bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                            <i class="bi bi-box-seam-fill"></i>
-                        </span>
-                    </div>
-                    <div class="fs-4 fw-extrabold text-info" id="stat-active-orders">{{ stats.active_orders if stats else 0 }}</div>
-                    <div class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Órdenes en Curso</div>
-                </div>
-            </div>
-        </div>
-
         <!-- NAVEGACIÓN POR PESTAÑAS (SEGMENTED CONTROL IOS) -->
         <div class="text-center mb-4">
             <ul class="nav nav-pills segmented-control gap-1" id="mainTabs" role="tablist">
@@ -365,12 +282,98 @@
                 <div id="private-unlocked-view" style="display: none;">
                     
                     <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                        <h3 class="fw-bold mb-0 text-dark">
-                            <i class="bi bi-shield-check text-success me-2"></i> Panel Administrativo Central
-                        </h3>
+                        <div>
+                            <h3 class="fw-bold mb-0 text-dark">
+                                <i class="bi bi-shield-check text-success me-2"></i> Panel Administrativo Central
+                            </h3>
+                            <small class="text-secondary">Monitoreo confidencial del ecosistema Lorivery en Lorica</small>
+                        </div>
                         <button class="btn btn-outline-secondary btn-sm" onclick="lockPrivateArea()">
                             <i class="bi bi-lock-fill me-1"></i> Bloquear Área
                         </button>
+                    </div>
+
+                    <!-- ========================================================================= -->
+                    <!-- MÉTRICAS Y CONTADORES EN TIEMPO REAL (ÁREA ADMINISTRATIVA PRIVADA)         -->
+                    <!-- ========================================================================= -->
+                    <div class="row g-3 mb-5" id="stats-summary-grid">
+                        <!-- 1. Total Usuarios -->
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="card card-custom p-3 text-center h-100 border-0 shadow-sm" style="background: #FFFFFF;">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <span class="p-2 rounded-circle bg-dark text-white d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-people-fill"></i>
+                                    </span>
+                                </div>
+                                <div class="fs-4 fw-extrabold text-dark" id="stat-total-users">{{ stats.total_users if stats else 0 }}</div>
+                                <div class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Usuarios Totales</div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Clientes -->
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="card card-custom p-3 text-center h-100 border-0 shadow-sm" style="background: #FFFFFF;">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <span class="p-2 rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-person-heart"></i>
+                                    </span>
+                                </div>
+                                <div class="fs-4 fw-extrabold text-danger" id="stat-total-clients">{{ stats.total_clients if stats else 0 }}</div>
+                                <div class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Clientes</div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Repartidores -->
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="card card-custom p-3 text-center h-100 border-0 shadow-sm" style="background: #FFFFFF;">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <span class="p-2 rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-bicycle"></i>
+                                    </span>
+                                </div>
+                                <div class="fs-4 fw-extrabold text-primary" id="stat-total-couriers">{{ stats.total_couriers if stats else 0 }}</div>
+                                <div class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Repartidores</div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Repartidores Aprobados -->
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="card card-custom p-3 text-center h-100 border-0 shadow-sm" style="background: #FFFFFF;">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <span class="p-2 rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-shield-check"></i>
+                                    </span>
+                                </div>
+                                <div class="fs-4 fw-extrabold text-success" id="stat-approved-couriers">{{ stats.approved_couriers if stats else 0 }}</div>
+                                <div class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Repartidores KYC</div>
+                            </div>
+                        </div>
+
+                        <!-- 5. Restaurantes Aprobados -->
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="card card-custom p-3 text-center h-100 border-0 shadow-sm" style="background: #FFFFFF;">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <span class="p-2 rounded-circle bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-shop"></i>
+                                    </span>
+                                </div>
+                                <div class="fs-4 fw-extrabold text-dark" id="stat-total-restaurants">{{ stats.approved_restaurants if stats else 0 }}</div>
+                                <div class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Restaurantes</div>
+                            </div>
+                        </div>
+
+                        <!-- 6. Órdenes Activas -->
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="card card-custom p-3 text-center h-100 border-0 shadow-sm" style="background: #FFFFFF;">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <span class="p-2 rounded-circle bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-box-seam-fill"></i>
+                                    </span>
+                                </div>
+                                <div class="fs-4 fw-extrabold text-info" id="stat-active-orders">{{ stats.active_orders if stats else 0 }}</div>
+                                <div class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Órdenes en Curso</div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- ============================================== -->
@@ -670,12 +673,12 @@
                                     <i class="bi bi-android2 me-1"></i> Android APK
                                 </span>
                             </div>
-                            <h3 class="fw-bold mb-2">🛒 Lorivery Cliente</h3>
+                            <h3 class="fw-bold mb-2">Lorivery Cliente</h3>
                             <p class="text-muted mb-4">
                                 Para usuarios y clientes en Lorica. Explora menús de restaurantes, haz pedidos con GPS automático en vivo, paga con Nequi o Efectivo y chatea con tu repartidor.
                             </p>
                             <div class="d-flex align-items-center text-muted small mb-4">
-                                <i class="bi bi-hdd-stack me-2 text-danger"></i> Tamaño: <strong class="text-dark ms-1">24.3 MB</strong>
+                                <i class="bi bi-hdd-stack me-2 text-danger"></i> Tamaño: <strong class="text-dark ms-1">24.9 MB</strong>
                                 <span class="mx-2">•</span>
                                 <i class="bi bi-shield-check me-1 text-success"></i> Verificado
                             </div>
@@ -687,25 +690,25 @@
 
                     <!-- APP REPARTIDOR -->
                     <div class="col-md-6">
-                        <div class="card card-custom h-100 p-4 border-start border-4 border-warning shadow-sm">
+                        <div class="card card-custom h-100 p-4 border-start border-4 border-dark shadow-sm">
                             <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-4 fs-2">
+                                <div class="bg-dark bg-opacity-10 text-dark p-3 rounded-4 fs-2">
                                     <i class="bi bi-bicycle"></i>
                                 </div>
-                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2 rounded-pill">
+                                <span class="badge bg-dark bg-opacity-10 text-dark border border-dark px-3 py-2 rounded-pill">
                                     <i class="bi bi-android2 me-1"></i> Android APK
                                 </span>
                             </div>
-                            <h3 class="fw-bold mb-2">🏍️ Lorivery Repartidor</h3>
+                            <h3 class="fw-bold mb-2">Lorivery Repartidor</h3>
                             <p class="text-muted mb-4">
                                 Para repartidores y domiciliarios. Radar de pedidos disponibles con auto-actualización en vivo, mapa interactivo GPS y confirmación con código de entrega de 4 dígitos.
                             </p>
                             <div class="d-flex align-items-center text-muted small mb-4">
-                                <i class="bi bi-hdd-stack me-2 text-warning"></i> Tamaño: <strong class="text-dark ms-1">24.2 MB</strong>
+                                <i class="bi bi-hdd-stack me-2 text-dark"></i> Tamaño: <strong class="text-dark ms-1">24.8 MB</strong>
                                 <span class="mx-2">•</span>
                                 <i class="bi bi-shield-check me-1 text-success"></i> Verificado
                             </div>
-                            <a href="/uploads/apks/Lorica-Repartidor.apk" download="Lorica-Repartidor.apk" class="btn btn-warning btn-lg w-100 fw-bold text-dark rounded-pill shadow-sm">
+                            <a href="/uploads/apks/Lorica-Repartidor.apk" download="Lorica-Repartidor.apk" class="btn btn-dark btn-lg w-100 fw-bold text-white rounded-pill shadow-sm">
                                 <i class="bi bi-download me-2"></i> Descargar App Repartidor (.apk)
                             </a>
                         </div>
