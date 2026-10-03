@@ -96,6 +96,39 @@ async def create_order_with_payment(
         "delivery_code": delivery_code
     }
 
+@router.get("/available")
+async def get_available_orders(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(require_courier)
+):
+    """
+    Devuelve los pedidos aprobados/listos que aún no tienen repartidor asignado.
+    """
+    query = text("""
+        SELECT o.id, o.restaurant_id, o.delivery_address, o.delivery_fee, r.name as restaurant_name
+        FROM orders o
+        LEFT JOIN restaurants r ON o.restaurant_id = r.id
+        WHERE (o.status = 'READY' OR o.status = 'APPROVED' OR o.status = 'CREATED')
+          AND o.courier_id IS NULL
+        ORDER BY o.id DESC
+    """)
+    result = await db.execute(query)
+    rows = result.fetchall()
+
+    orders_list = []
+    for row in rows:
+        o_id, r_id, del_addr, fee, r_name = row
+        orders_list.append({
+            "order_id": str(o_id),
+            "restaurant_id": str(r_id) if r_id else None,
+            "restaurant": r_name or "Restaurante Local",
+            "destination": del_addr or "Cliente Lorica",
+            "earnings": f"${(fee or 3000):,.0f} COP",
+            "distance": "En Lorica"
+        })
+
+    return {"status": "success", "orders": orders_list}
+
 @router.post("/{order_id}/accept")
 async def accept_order(
     order_id: str,

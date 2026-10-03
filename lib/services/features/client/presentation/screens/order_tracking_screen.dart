@@ -69,22 +69,19 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                 break;
               case 'created':
               case 'approved':
+              case 'ready':
                 _currentStep = 1;
                 break;
               case 'assigned':
+              case 'at_restaurant':
                 _currentStep = 2;
                 break;
-              case 'at_restaurant':
+              case 'picked_up':
+              case 'on_the_way':
                 _currentStep = 3;
                 break;
-              case 'picked_up':
-                _currentStep = 4;
-                break;
-              case 'on_the_way':
-                _currentStep = 5;
-                break;
               case 'delivered':
-                _currentStep = 6;
+                _currentStep = 4;
                 _pollingTimer?.cancel();
                 _showDeliveryCompleteDialog(context);
                 break;
@@ -209,40 +206,32 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                         context,
                         stepIndex: 1,
                         title: 'Pago Aprobado',
-                        subtitle: 'Tu transferencia fue validada.',
+                        subtitle: 'Tu orden fue validada. Buscando repartidor...',
                         icon: Icons.check_circle_rounded,
                         isLast: false,
                       ),
                       _buildTrackingStep(
                         context,
                         stepIndex: 2,
-                        title: 'Repartidor Asignado',
-                        subtitle: 'Buscando al mejor conductor...',
-                        icon: Icons.person_search_rounded,
-                        isLast: false,
-                      ),
-                      _buildTrackingStep(
-                        context,
-                        stepIndex: 3,
                         title: 'En camino al restaurante',
-                        subtitle: 'El conductor va a recoger tu pedido.',
+                        subtitle: 'El repartidor aceptó tu pedido y va hacia el restaurante.',
                         icon: Icons.storefront_rounded,
                         isLast: false,
                       ),
                       _buildTrackingStep(
                         context,
-                        stepIndex: 4,
-                        title: 'Pedido Recogido',
-                        subtitle: 'Tu comida ya salió del restaurante.',
-                        icon: Icons.takeout_dining_rounded,
+                        stepIndex: 3,
+                        title: 'En camino a tu domicilio',
+                        subtitle: 'El repartidor ya ingresó el código del negocio y lleva tu comida.',
+                        icon: Icons.motorcycle_rounded,
                         isLast: false,
                       ),
                       _buildTrackingStep(
                         context,
-                        stepIndex: 5,
-                        title: 'En camino a tu domicilio',
-                        subtitle: 'Prepara tu código de entrega.',
-                        icon: Icons.motorcycle_rounded,
+                        stepIndex: 4,
+                        title: 'Pedido Entregado',
+                        subtitle: '¡Disfruta tu pedido!',
+                        icon: Icons.task_alt_rounded,
                         isLast: true,
                       ),
                     ],

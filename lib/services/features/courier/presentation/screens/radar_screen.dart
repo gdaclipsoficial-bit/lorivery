@@ -27,6 +27,8 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
   
   LatLng? _currentLocation;
   StreamSubscription<Position>? _positionStream;
+  Timer? _ordersPollTimer;
+  bool _isSheetOpen = false;
 
   @override
   void initState() {
@@ -39,8 +41,37 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
         final orderData = wsService.pendingOrder!;
         wsService.clearPendingOrder();
         _showIncomingOrderBottomSheet(orderData);
+      } else {
+        _checkPendingAvailableOrders();
       }
     });
+
+    // Consultar periódicamente pedidos disponibles si el repartidor se conecta tarde o no hay asignado
+    _ordersPollTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      _checkPendingAvailableOrders();
+    });
+  }
+
+  Future<void> _checkPendingAvailableOrders() async {
+    if (_isSheetOpen) return;
+    try {
+      final token = ref.read(authProvider).token;
+      if (token == null) return;
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/orders/available'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200 && mounted) {
+        final data = jsonDecode(response.body);
+        final List<dynamic> orders = data['orders'] ?? [];
+        if (orders.isNotEmpty && !_isSheetOpen) {
+          final firstOrder = orders.first;
+          _showIncomingOrderBottomSheet(Map<String, dynamic>.from(firstOrder));
+        }
+      }
+    } catch (_) {}
   }
 
   Future<void> _initLocationTracking() async {
@@ -91,6 +122,7 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
 
   @override
   void dispose() {
+    _ordersPollTimer?.cancel();
     _positionStream?.cancel();
     _mapController.dispose();
     super.dispose();
@@ -435,7 +467,8 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
   }
 
   void _showIncomingOrderBottomSheet(Map<String, dynamic> orderData) {
-    if (!mounted) return;
+    if (!mounted || _isSheetOpen) return;
+    _isSheetOpen = true;
     showModalBottomSheet(
       context: context,
       isDismissible: false,
@@ -443,7 +476,9 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _IncomingOrderSheet(orderData: orderData),
-    );
+    ).then((_) {
+      _isSheetOpen = false;
+    });
   }
 }
 
