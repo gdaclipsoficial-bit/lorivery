@@ -59,6 +59,24 @@ async def root(request: Request):
 async def download_page(request: Request):
     return templates.TemplateResponse(request=request, name="landing.html")
 
+from fastapi.responses import FileResponse, Response, RedirectResponse
+
+@app.get("/repartidor.jpg")
+async def serve_repartidor():
+    if os.path.exists("repartidor.jpg"):
+        return FileResponse("repartidor.jpg")
+    if os.path.exists("uploads/repartidor.jpg"):
+        return FileResponse("uploads/repartidor.jpg")
+    return Response(status_code=404)
+
+@app.get("/cliente.jpg")
+async def serve_cliente():
+    if os.path.exists("cliente.jpg"):
+        return FileResponse("cliente.jpg")
+    if os.path.exists("uploads/cliente.jpg"):
+        return FileResponse("uploads/cliente.jpg")
+    return Response(status_code=404)
+
 @app.get("/dashboard")
 async def dashboard_redirect():
     return RedirectResponse(url="/admin-web/dashboard")
