@@ -72,7 +72,7 @@ async def get_pending_couriers(db: AsyncSession = Depends(get_db)):
         
     return {"pending_couriers": pending}
 
-@router.api_route("/couriers/{courier_id}/approve", methods=["GET", "PATCH"])
+@router.api_route("/couriers/{courier_id}/approve", methods=["GET", "PATCH", "POST"])
 async def approve_courier(courier_id: str, db: AsyncSession = Depends(get_db)):
     """
     Aprueba a un repartidor para que pueda conectarse y recibir pedidos.
@@ -86,3 +86,44 @@ async def approve_courier(courier_id: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Repartidor no encontrado")
         
     return {"status": "success", "message": "Repartidor aprobado exitosamente"}
+
+@router.api_route("/couriers/{courier_id}/reject", methods=["DELETE", "PATCH", "POST"])
+async def reject_courier(courier_id: str, db: AsyncSession = Depends(get_db)):
+    """
+    Declina la solicitud de un repartidor, reseteando sus documentos o rechazándolo.
+    """
+    from app.models.domain import Courier
+    query = update(Courier).where(Courier.user_id == courier_id).values(
+        is_approved=False,
+        id_front_url=None,
+        id_back_url=None,
+        selfie_url=None
+    )
+    result = await db.execute(query)
+    await db.commit()
+    
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Repartidor no encontrado")
+        
+    return {"status": "success", "message": "Solicitud de repartidor declinada correctamente."}
+
+@router.api_route("/restaurants/{restaurant_id}/reject", methods=["DELETE", "PATCH", "POST"])
+async def reject_restaurant(restaurant_id: str, db: AsyncSession = Depends(get_db)):
+    """
+    Declina y elimina la solicitud de registro de un restaurante.
+    """
+    from app.models.domain import Restaurant, Product
+    from sqlalchemy import delete
+    
+    # 1. Eliminar productos si los hubiera
+    await db.execute(delete(Product).where(Product.restaurant_id == restaurant_id))
+    
+    # 2. Eliminar el restaurante
+    del_q = delete(Restaurant).where(Restaurant.id == restaurant_id)
+    result = await db.execute(del_q)
+    await db.commit()
+    
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Restaurante no encontrado")
+        
+    return {"status": "success", "message": "Restaurante declinado y eliminado correctamente."}

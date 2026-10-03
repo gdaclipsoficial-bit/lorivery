@@ -413,9 +413,14 @@
                                             </div>
                                         </div>
 
-                                        <button onclick="approveRestaurant('{{ r.id }}')" class="btn btn-success w-100 fw-bold py-2 shadow-sm mt-3">
-                                            <i class="bi bi-check2-circle me-1"></i> APROBAR RESTAURANTE
-                                        </button>
+                                        <div class="d-flex gap-2 mt-3">
+                                            <button onclick="rejectRestaurant('{{ r.id }}', '{{ r.name }}')" class="btn btn-outline-danger w-50 fw-bold py-2 shadow-sm">
+                                                <i class="bi bi-x-circle me-1"></i> DECLINAR
+                                            </button>
+                                            <button onclick="approveRestaurant('{{ r.id }}')" class="btn btn-success w-50 fw-bold py-2 shadow-sm">
+                                                <i class="bi bi-check2-circle me-1"></i> APROBAR
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 {% endfor %}
@@ -536,9 +541,14 @@
                                             </div>
                                         </div>
 
-                                        <button onclick="approveCourier('{{ c.courier_id }}')" class="btn btn-success w-100 fw-bold py-2 shadow-sm">
-                                            <i class="bi bi-person-check-fill me-1"></i> APROBAR CUENTA DE REPARTIDOR
-                                        </button>
+                                        <div class="d-flex gap-2 mt-3">
+                                            <button onclick="rejectCourier('{{ c.courier_id }}', '{{ c.name }}')" class="btn btn-outline-danger w-50 fw-bold py-2 shadow-sm">
+                                                <i class="bi bi-person-x-fill me-1"></i> DECLINAR
+                                            </button>
+                                            <button onclick="approveCourier('{{ c.courier_id }}')" class="btn btn-success w-50 fw-bold py-2 shadow-sm">
+                                                <i class="bi bi-person-check-fill me-1"></i> APROBAR
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 {% endfor %}
@@ -971,6 +981,38 @@
                 } else {
                     const err = await res.json();
                     alert("Error al aprobar");
+                }
+            } catch (err) {
+                alert("Error de conexión");
+            }
+        }
+
+        async function rejectCourier(courierId, courierName) {
+            if (!confirm(`¿Estás seguro de declinar la solicitud del repartidor "${courierName}"?`)) return;
+            try {
+                const res = await fetch(`/admin/couriers/${courierId}/reject`, { method: 'PATCH' });
+                if (res.ok) {
+                    alert("Solicitud de repartidor declinada.");
+                    location.reload();
+                } else {
+                    const err = await res.json();
+                    alert("Error al declinar: " + (err.detail || "Error"));
+                }
+            } catch (err) {
+                alert("Error de conexión");
+            }
+        }
+
+        async function rejectRestaurant(restaurantId, restaurantName) {
+            if (!confirm(`¿Estás seguro de declinar y descartar el restaurante "${restaurantName}"?`)) return;
+            try {
+                const res = await fetch(`/admin/restaurants/${restaurantId}/reject`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert("Restaurante declinado exitosamente.");
+                    location.reload();
+                } else {
+                    const err = await res.json();
+                    alert("Error al declinar restaurante.");
                 }
             } catch (err) {
                 alert("Error de conexión");
