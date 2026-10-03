@@ -6,58 +6,607 @@
     <title>Panel de Comercio - {{ restaurant.name }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; font-family: system-ui, -apple-system, sans-serif; }
-        .badge-pickup-code {
-            font-size: 2rem;
-            letter-spacing: 4px;
+        :root {
+            --ios-bg: #F5F5F7;
+            --ios-card: #FFFFFF;
+            --ios-dark: #1D1D1F;
+            --ios-secondary: #8E8E93;
+            --ios-red: #FF3B30;
+            --ios-blue: #007AFF;
+            --ios-green: #34C759;
+            --ios-orange: #FF9500;
+            --ios-border: rgba(0, 0, 0, 0.08);
+            --ios-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            --ios-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.10);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            background: var(--ios-bg);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            color: var(--ios-dark);
+            min-height: 100vh;
+        }
+
+        /* ── NAVBAR ── */
+        .navbar-ios {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid var(--ios-border);
+            padding: 14px 0;
+        }
+        .navbar-ios .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--ios-red);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 17px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .navbar-ios .brand-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--ios-dark);
+            letter-spacing: -0.3px;
+        }
+        .navbar-ios .brand-sub {
+            font-size: 11px;
+            color: var(--ios-secondary);
+            font-weight: 500;
+        }
+        .btn-ios-outline {
+            border: 1.5px solid var(--ios-red);
+            color: var(--ios-red);
+            border-radius: 980px;
+            padding: 7px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            background: transparent;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-ios-outline:hover {
+            background: var(--ios-red);
+            color: #fff;
+        }
+        .btn-ios-lock {
+            border: 1.5px solid var(--ios-border);
+            color: var(--ios-secondary);
+            border-radius: 980px;
+            padding: 7px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            background: transparent;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-ios-lock:hover {
+            background: #F2F2F7;
+            color: var(--ios-dark);
+        }
+
+        /* ── LOCK VIEW ── */
+        .lock-wrapper {
+            min-height: calc(100vh - 68px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+        }
+        .lock-card {
+            background: var(--ios-card);
+            border-radius: 24px;
+            border: 1px solid var(--ios-border);
+            box-shadow: var(--ios-shadow-lg);
+            padding: 40px 36px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+        }
+        .lock-icon-wrap {
+            width: 72px;
+            height: 72px;
+            background: rgba(255, 59, 48, 0.08);
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 32px;
+            color: var(--ios-red);
+        }
+        .lock-card h4 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--ios-dark);
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+        .lock-card p {
+            font-size: 14px;
+            color: var(--ios-secondary);
+            line-height: 1.5;
+            margin-bottom: 28px;
+        }
+        .pin-input {
+            border: 1.5px solid var(--ios-border);
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 8px;
+            color: var(--ios-dark);
+            background: #F9F9FB;
+            transition: border-color 0.2s;
+            width: 100%;
+            outline: none;
+        }
+        .pin-input:focus {
+            border-color: var(--ios-red);
+            background: #fff;
+        }
+        .btn-ios-primary {
+            background: var(--ios-red);
+            color: #fff;
+            border: none;
+            border-radius: 980px;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-ios-primary:hover {
+            background: #E0342A;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(255, 59, 48, 0.35);
+        }
+        .btn-ios-primary:disabled {
+            opacity: 0.6;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ── SECTION HEADERS ── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--ios-dark);
+            letter-spacing: -0.3px;
+            margin: 0;
+        }
+        .section-sub {
+            font-size: 13px;
+            color: var(--ios-secondary);
+            margin: 2px 0 0;
+            font-weight: 400;
+        }
+        .btn-ios-ghost {
+            border: 1.5px solid var(--ios-border);
+            color: var(--ios-secondary);
+            border-radius: 980px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-ios-ghost:hover {
+            background: #F2F2F7;
+            color: var(--ios-dark);
+        }
+        .btn-ios-add {
+            background: var(--ios-red);
+            color: #fff;
+            border: none;
+            border-radius: 980px;
+            padding: 9px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .btn-ios-add:hover {
+            background: #E0342A;
+            box-shadow: 0 4px 16px rgba(255, 59, 48, 0.3);
+        }
+
+        /* ── ORDER CARDS ── */
+        .card-ios {
+            background: var(--ios-card);
+            border-radius: 20px;
+            border: 1px solid var(--ios-border);
+            box-shadow: var(--ios-shadow);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-ios:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--ios-shadow-lg);
+        }
+        .order-card-header {
+            padding: 16px 18px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--ios-border);
+        }
+        .order-id {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--ios-dark);
+        }
+        .badge-ios {
+            border-radius: 980px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .badge-ios-blue { background: rgba(0,122,255,0.10); color: var(--ios-blue); }
+        .badge-ios-green { background: rgba(52,199,89,0.10); color: var(--ios-green); }
+        .badge-ios-orange { background: rgba(255,149,0,0.10); color: var(--ios-orange); }
+
+        .order-card-body {
+            padding: 18px;
+        }
+        .pickup-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--ios-secondary);
+            margin-bottom: 10px;
+        }
+        .pickup-code-box {
+            background: #F2F2F7;
+            border-radius: 16px;
+            padding: 16px 20px;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .pickup-code {
+            font-size: 36px;
             font-weight: 800;
+            letter-spacing: 8px;
+            color: var(--ios-red);
+            display: block;
+        }
+        .order-meta {
+            font-size: 13px;
+            color: var(--ios-secondary);
+            margin-bottom: 14px;
+        }
+        .order-meta strong { color: var(--ios-dark); }
+        .info-banner {
+            background: rgba(0,122,255,0.06);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: var(--ios-blue);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.4;
+        }
+        .info-banner-warn {
+            background: rgba(255,149,0,0.07);
+            color: var(--ios-orange);
+        }
+        .btn-ready {
+            background: var(--ios-red);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            padding: 13px 20px;
+            font-size: 15px;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-ready:hover {
+            background: #E0342A;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(255, 59, 48, 0.3);
+        }
+
+        /* ── EMPTY STATES ── */
+        .empty-state {
+            background: var(--ios-card);
+            border-radius: 20px;
+            border: 1px solid var(--ios-border);
+            padding: 48px 24px;
+            text-align: center;
+        }
+        .empty-icon {
+            width: 60px;
+            height: 60px;
+            background: #F2F2F7;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 24px;
+            color: var(--ios-secondary);
+        }
+        .empty-state h5 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--ios-dark);
+            margin-bottom: 6px;
+        }
+        .empty-state p {
+            font-size: 13px;
+            color: var(--ios-secondary);
+            margin: 0;
+            max-width: 280px;
+            margin-inline: auto;
+            line-height: 1.5;
+        }
+
+        /* ── DIVIDER ── */
+        .section-divider {
+            border: none;
+            border-top: 1px solid var(--ios-border);
+            margin: 36px 0;
+        }
+
+        /* ── PRODUCT CARDS ── */
+        .product-card {
+            background: var(--ios-card);
+            border-radius: 18px;
+            border: 1px solid var(--ios-border);
+            box-shadow: var(--ios-shadow);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .product-card:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--ios-shadow-lg);
         }
         .product-img {
-            width: 70px;
-            height: 70px;
+            width: 64px;
+            height: 64px;
             object-fit: cover;
+            border-radius: 14px;
+            flex-shrink: 0;
+        }
+        .product-img-placeholder {
+            width: 64px;
+            height: 64px;
+            background: #F2F2F7;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: var(--ios-secondary);
+            flex-shrink: 0;
+        }
+        .product-info { flex: 1; min-width: 0; }
+        .product-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ios-dark);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .product-desc {
+            font-size: 12px;
+            color: var(--ios-secondary);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .product-price {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ios-green);
+        }
+        .product-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+        .form-switch .form-check-input {
+            width: 40px;
+            height: 22px;
+            cursor: pointer;
+        }
+        .form-check-input:checked {
+            background-color: var(--ios-green);
+            border-color: var(--ios-green);
+        }
+        .btn-delete {
+            background: rgba(255,59,48,0.08);
+            border: none;
+            color: var(--ios-red);
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-delete:hover { background: rgba(255,59,48,0.16); }
+
+        /* ── MODAL ── */
+        .modal-content {
+            border: none;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--ios-shadow-lg);
+        }
+        .modal-header-ios {
+            background: var(--ios-card);
+            padding: 22px 24px 18px;
+            border-bottom: 1px solid var(--ios-border);
+        }
+        .modal-header-ios .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--ios-dark);
+        }
+        .modal-body { padding: 24px; }
+        .modal-footer-ios {
+            padding: 16px 24px;
+            border-top: 1px solid var(--ios-border);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .form-label-ios {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ios-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .form-control-ios {
+            border: 1.5px solid var(--ios-border);
             border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 15px;
+            font-family: inherit;
+            color: var(--ios-dark);
+            background: #F9F9FB;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.2s, background 0.2s;
         }
-        .lock-container {
-            max-width: 420px;
-            margin: 60px auto;
+        .form-control-ios:focus {
+            border-color: var(--ios-red);
+            background: #fff;
         }
+        .btn-ios-cancel {
+            background: #F2F2F7;
+            color: var(--ios-dark);
+            border: none;
+            border-radius: 980px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-ios-cancel:hover { background: #E5E5EA; }
+        .btn-ios-submit {
+            background: var(--ios-red);
+            color: #fff;
+            border: none;
+            border-radius: 980px;
+            padding: 10px 22px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .btn-ios-submit:hover {
+            background: #E0342A;
+            box-shadow: 0 4px 14px rgba(255,59,48,0.3);
+        }
+        .btn-ios-submit:disabled { opacity: 0.6; }
     </style>
 </head>
 <body>
+
     <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-danger shadow-sm py-3">
-        <div class="container">
-            <span class="navbar-brand fw-bold fs-4 d-flex align-items-center">
-                <i class="bi bi-shop me-2"></i> {{ restaurant.name }}
-            </span>
+    <nav class="navbar navbar-ios sticky-top">
+        <div class="container d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <div class="brand-icon">
+                    <i class="bi bi-shop"></i>
+                </div>
+                <div>
+                    <div class="brand-name">{{ restaurant.name }}</div>
+                    <div class="brand-sub">Panel de Comercio</div>
+                </div>
+            </div>
             <div class="d-flex align-items-center gap-2">
-                <a href="/dashboard" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-arrow-left me-1"></i> Ir al Centro de Control
+                <a href="/dashboard" class="btn-ios-outline">
+                    <i class="bi bi-arrow-left" style="font-size:13px;"></i> Centro de Control
                 </a>
-                <button id="lockBtn" class="btn btn-dark btn-sm" onclick="lockMerchantPanel()" style="display:none;">
-                    <i class="bi bi-lock-fill me-1"></i> Bloquear
+                <button id="lockBtn" class="btn-ios-lock" onclick="lockMerchantPanel()" style="display:none;">
+                    <i class="bi bi-lock-fill" style="font-size:13px;"></i> Bloquear
                 </button>
             </div>
         </div>
     </nav>
 
     <!-- VISTA DE BLOQUEO CON PIN -->
-    <div id="merchant-locked-view" class="lock-container text-center py-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
-            <div class="mb-3 text-danger fs-1">
+    <div id="merchant-locked-view" class="lock-wrapper">
+        <div class="lock-card">
+            <div class="lock-icon-wrap">
                 <i class="bi bi-shield-lock-fill"></i>
             </div>
-            <h4 class="fw-bold mb-1">Acceso Privado a "{{ restaurant.name }}"</h4>
-            <p class="text-muted small mb-4">Ingresa la clave o PIN de seguridad que definiste al registrar tu restaurante.</p>
-            
+            <h4>Acceso Privado</h4>
+            <p>Ingresa el PIN de seguridad de <strong>{{ restaurant.name }}</strong> que definiste al registrar tu restaurante.</p>
+
             <form onsubmit="unlockMerchantPanel(event)">
                 <div class="mb-3">
-                    <input type="password" id="merchantPinInput" class="form-control form-control-lg text-center fw-bold" placeholder="PIN de Seguridad" required autofocus>
+                    <input type="password" id="merchantPinInput" class="pin-input"
+                           placeholder="• • • • •" required autofocus maxlength="10">
                 </div>
-                <button type="submit" class="btn btn-danger btn-lg w-100 fw-bold" id="unlockBtn">
-                    <i class="bi bi-unlock-fill me-1"></i> Entrar al Panel
+                <button type="submit" class="btn-ios-primary" id="unlockBtn">
+                    <i class="bi bi-unlock-fill"></i> Entrar al Panel
                 </button>
             </form>
         </div>
@@ -65,55 +614,60 @@
 
     <!-- CONTENIDO PRINCIPAL (SOLO TRAS INGRESAR PIN) -->
     <div id="merchant-content-view" class="container py-4" style="display: none;">
-        
-        <!-- SECCIÓN 1: PEDIDOS ACTIVOS Y CÓDIGO DE RETIRO -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <!-- SECCIÓN 1: PEDIDOS ACTIVOS -->
+        <div class="section-header">
             <div>
-                <h3 class="fw-bold mb-0 text-dark"><i class="bi bi-box-seam text-danger me-2"></i> Pedidos Asignados a tu Restaurante</h3>
-                <small class="text-muted">Verifica el código de 4 dígitos antes de entregar la comida al domiciliario</small>
+                <h3 class="section-title">Pedidos Activos</h3>
+                <p class="section-sub">Verifica el código de recogida antes de entregar al domiciliario</p>
             </div>
-            <button class="btn btn-outline-secondary btn-sm" onclick="location.reload()">
-                <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+            <button class="btn-ios-ghost" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise"></i> Actualizar
             </button>
         </div>
 
-        <div class="row g-4 mb-5" id="orders-container">
+        <div class="row g-3 mb-2" id="orders-container">
             {% if orders %}
                 {% for order in orders %}
                 <div class="col-md-6 col-lg-4">
-                    <div class="card shadow-sm border-0 rounded-4 h-100 border-start border-danger border-4">
-                        <div class="card-header bg-white d-flex justify-content-between align-items-center border-0 pt-3">
-                            <span class="fw-bold text-dark">Orden #{{ order.id[:8] }}</span>
+                    <div class="card-ios">
+                        <div class="order-card-header">
+                            <span class="order-id">Orden #{{ order.id[:8].upper() }}</span>
                             {% if order.status == 'APPROVED_BY_ADMIN' %}
-                                <span class="badge bg-primary"><i class="bi bi-check-all me-1"></i> Pago Aprobado</span>
+                                <span class="badge-ios badge-ios-blue">
+                                    <i class="bi bi-check-all" style="font-size:11px;"></i> Pago Aprobado
+                                </span>
                             {% elif order.status == 'READY' %}
-                                <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i> Preparado / Listo</span>
+                                <span class="badge-ios badge-ios-green">
+                                    <i class="bi bi-check-circle-fill" style="font-size:11px;"></i> Preparado
+                                </span>
                             {% else %}
-                                <span class="badge bg-warning text-dark">{{ order.status }}</span>
+                                <span class="badge-ios badge-ios-orange">{{ order.status }}</span>
                             {% endif %}
                         </div>
-                        <div class="card-body text-center">
-                            <p class="text-muted mb-1 small fw-bold text-uppercase">Código de Recogida para el Domiciliario:</p>
-                            
-                            <!-- CÓDIGO DE RETIRO DESTACADO -->
-                            <div class="p-3 my-2 bg-light border border-2 border-danger rounded-4">
-                                <span class="badge-pickup-code text-danger">
+                        <div class="order-card-body">
+                            <p class="pickup-label">Codigo de Recogida</p>
+                            <div class="pickup-code-box">
+                                <span class="pickup-code">
                                     {{ order.pickup_code or order.delivery_code or '----' }}
                                 </span>
                             </div>
-                            
-                            <p class="mb-1 text-start small"><strong>Destino:</strong> {{ order.delivery_address or 'Barrio Centro, Lorica' }}</p>
-                            
+                            <p class="order-meta">
+                                <strong>Destino:</strong> {{ order.delivery_address or 'Barrio Centro, Lorica' }}
+                            </p>
+
                             {% if order.status == 'APPROVED_BY_ADMIN' %}
-                                <div class="alert alert-info text-start small p-2 mt-2 mb-2">
-                                    <i class="bi bi-info-circle-fill me-1"></i> El pago fue verificado por el administrador. Cuando termines de preparar la comida, presiona el botón de abajo.
+                                <div class="info-banner">
+                                    <i class="bi bi-info-circle-fill" style="font-size:15px; flex-shrink:0; margin-top:1px;"></i>
+                                    <span>El pago fue verificado. Cuando termines de preparar la comida, presiona el boton de abajo.</span>
                                 </div>
-                                <button class="btn btn-danger w-100 fw-bold shadow-sm py-2" onclick="markOrderAsReady('{{ order.id }}')">
-                                    <i class="bi bi-fire me-1"></i> 🍳 Marcar como Preparado
+                                <button class="btn-ready" onclick="markOrderAsReady('{{ order.id }}')">
+                                    <i class="bi bi-fire"></i> Marcar como Preparado
                                 </button>
                             {% else %}
-                                <div class="alert alert-warning text-start small p-2 mt-2 mb-0">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> El repartidor debe decirte este número exacto para retirar el pedido.
+                                <div class="info-banner info-banner-warn">
+                                    <i class="bi bi-exclamation-triangle-fill" style="font-size:15px; flex-shrink:0; margin-top:1px;"></i>
+                                    <span>El domiciliario debe decirte este codigo exacto para retirar el pedido.</span>
                                 </div>
                             {% endif %}
                         </div>
@@ -121,106 +675,116 @@
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="col-12 text-center py-5 bg-white rounded-4 shadow-sm">
-                    <i class="bi bi-check2-circle text-success display-4"></i>
-                    <h5 class="mt-3 fw-bold text-dark">No tienes pedidos pendientes por despachar</h5>
-                    <p class="text-muted small mb-0">Cuando un cliente ordene platos de tu menú, aparecerán aquí con su código de recogida.</p>
+                <div class="col-12">
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="bi bi-check2-circle"></i>
+                        </div>
+                        <h5>Sin pedidos pendientes</h5>
+                        <p>Cuando un cliente ordene de tu menu, los pedidos apareceran aqui con su codigo de recogida.</p>
+                    </div>
                 </div>
             {% endif %}
         </div>
 
-        <hr class="my-4">
+        <hr class="section-divider">
 
-        <!-- SECCIÓN 2: GESTIÓN FÁCIL DEL MENÚ / PRODUCTOS -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- SECCIÓN 2: MENU DE PRODUCTOS -->
+        <div class="section-header">
             <div>
-                <h3 class="fw-bold mb-0 text-dark"><i class="bi bi-journal-richtext text-danger me-2"></i> Menú de Productos y Precios</h3>
-                <small class="text-muted">Publica y administra los platos disponibles en la app de clientes</small>
+                <h3 class="section-title">Menu de Productos</h3>
+                <p class="section-sub">Administra los platos disponibles para los clientes</p>
             </div>
-            <button class="btn btn-danger fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#newProductModal">
-                <i class="bi bi-plus-lg me-1"></i> Publicar Nuevo Plato
+            <button class="btn-ios-add" data-bs-toggle="modal" data-bs-target="#newProductModal">
+                <i class="bi bi-plus-lg" style="font-size:14px;"></i> Nuevo Plato
             </button>
         </div>
 
-        <!-- LISTADO DE PRODUCTOS -->
-        <div class="row g-4" id="products-container">
+        <div class="row g-3" id="products-container">
             {% if products %}
                 {% for p in products %}
                 <div class="col-md-6">
-                    <div class="card shadow-sm border-0 rounded-4 h-100">
-                        <div class="card-body d-flex align-items-center p-3">
-                            {% if p.image_url %}
-                                <img src="{{ p.image_url }}" class="product-img me-3 border" alt="{{ p.name }}">
-                            {% else %}
-                                <div class="product-img bg-secondary bg-opacity-10 me-3 d-flex align-items-center justify-content-center text-danger fs-3">
-                                    <i class="bi bi-cup-hot"></i>
-                                </div>
-                            {% endif %}
-                            
-                            <div class="flex-grow-1">
-                                <h5 class="mb-1 fw-bold text-dark">{{ p.name }}</h5>
-                                <p class="text-muted small mb-1">{{ p.description or 'Sin descripción' }}</p>
-                                <span class="fw-bold text-success fs-5">${{ "{:,.0f}".format(p.price) }} COP</span>
+                    <div class="product-card">
+                        {% if p.image_url %}
+                            <img src="{{ p.image_url }}" class="product-img" alt="{{ p.name }}">
+                        {% else %}
+                            <div class="product-img-placeholder">
+                                <i class="bi bi-cup-hot"></i>
                             </div>
+                        {% endif %}
 
-                            <div class="text-end ms-2">
-                                <div class="form-check form-switch mb-2">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="switch-{{ p.id }}"
-                                           {% if p.is_available %}checked{% endif %}
-                                           onchange="toggleProduct('{{ p.id }}')">
-                                    <label class="form-check-label small d-block" for="switch-{{ p.id }}">
-                                        {% if p.is_available %}Disponible{% else %}Agotado{% endif %}
-                                    </label>
-                                </div>
-                                <button class="btn btn-outline-danger btn-sm border-0" onclick="deleteProduct('{{ p.id }}')" title="Eliminar plato">
-                                    <i class="bi bi-trash"></i>
-                                </button>
+                        <div class="product-info">
+                            <div class="product-name">{{ p.name }}</div>
+                            <div class="product-desc">{{ p.description or 'Sin descripcion' }}</div>
+                            <div class="product-price">${{ "{:,.0f}".format(p.price) }} COP</div>
+                        </div>
+
+                        <div class="product-actions">
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       id="switch-{{ p.id }}"
+                                       {% if p.is_available %}checked{% endif %}
+                                       onchange="toggleProduct('{{ p.id }}')">
                             </div>
+                            <button class="btn-delete" onclick="deleteProduct('{{ p.id }}')" title="Eliminar plato">
+                                <i class="bi bi-trash"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="col-12 text-center py-5 bg-white rounded-4 shadow-sm">
-                    <i class="bi bi-basket text-muted display-4 mb-2"></i>
-                    <h5 class="fw-bold text-dark">Aún no has publicado productos en tu menú</h5>
-                    <p class="text-muted small">Presiona "Publicar Nuevo Plato" para empezar a vender.</p>
+                <div class="col-12">
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="bi bi-basket"></i>
+                        </div>
+                        <h5>Menu vacio</h5>
+                        <p>Presiona "Nuevo Plato" para empezar a publicar tus productos y comenzar a recibir pedidos.</p>
+                    </div>
                 </div>
             {% endif %}
         </div>
-    </div>
 
-    <!-- MODAL PARA CREAR PRODUCTO -->
+    </div><!-- /merchant-content-view -->
+
+    <!-- MODAL CREAR PRODUCTO -->
     <div class="modal fade" id="newProductModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content border-0 shadow rounded-4">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i> Publicar Nuevo Plato</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header-ios d-flex align-items-center justify-content-between">
+                    <h5 class="modal-title">Publicar Nuevo Plato</h5>
+                    <button type="button" class="btn-delete" data-bs-dismiss="modal" aria-label="Cerrar" style="background:none;">
+                        <i class="bi bi-x-lg" style="font-size:16px; color:var(--ios-secondary);"></i>
+                    </button>
                 </div>
                 <form id="createProductForm" onsubmit="saveProduct(event)">
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Nombre del Plato / Producto <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="name" placeholder="Ej. Hamburguesa Doble Carne" required>
+                        <div class="mb-4">
+                            <label class="form-label-ios">Nombre del Plato <span style="color:var(--ios-red);">*</span></label>
+                            <input type="text" class="form-control-ios" name="name"
+                                   placeholder="Ej. Hamburguesa Doble Carne" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Precio (COP) <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="price" placeholder="Ej. 18000" step="500" required>
+                        <div class="mb-4">
+                            <label class="form-label-ios">Precio (COP) <span style="color:var(--ios-red);">*</span></label>
+                            <input type="number" class="form-control-ios" name="price"
+                                   placeholder="Ej. 18000" step="500" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Descripción (Opcional)</label>
-                            <textarea class="form-control" name="description" rows="2" placeholder="Ej. Con queso mozzarella, tocineta y papas a la francesa"></textarea>
+                        <div class="mb-4">
+                            <label class="form-label-ios">Descripcion</label>
+                            <textarea class="form-control-ios" name="description" rows="3"
+                                      placeholder="Ej. Con queso mozzarella, tocineta y papas a la francesa"></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Foto del Plato (Opcional)</label>
-                            <input type="file" class="form-control" name="image" accept="image/*">
+                        <div class="mb-2">
+                            <label class="form-label-ios">Foto del Plato</label>
+                            <input type="file" class="form-control-ios" name="image" accept="image/*"
+                                   style="padding: 10px 14px; cursor:pointer;">
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-danger fw-bold" id="submitBtn">
-                            <i class="bi bi-cloud-upload me-1"></i> Publicar Plato
+                    <div class="modal-footer-ios">
+                        <button type="button" class="btn-ios-cancel" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn-ios-submit" id="submitBtn">
+                            <i class="bi bi-cloud-upload"></i> Publicar Plato
                         </button>
                     </div>
                 </form>
@@ -238,9 +802,9 @@
             if (sessionStorage.getItem(SESSION_KEY) === "true") {
                 document.getElementById("merchant-locked-view").style.display = "none";
                 document.getElementById("merchant-content-view").style.display = "block";
-                document.getElementById("lockBtn").style.display = "inline-block";
+                document.getElementById("lockBtn").style.display = "inline-flex";
             } else {
-                document.getElementById("merchant-locked-view").style.display = "block";
+                document.getElementById("merchant-locked-view").style.display = "flex";
                 document.getElementById("merchant-content-view").style.display = "none";
                 document.getElementById("lockBtn").style.display = "none";
             }
@@ -252,7 +816,7 @@
             const btn = document.getElementById("unlockBtn");
 
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Verificando...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" style="width:16px;height:16px;"></span>Verificando...';
 
             try {
                 const formData = new FormData();
@@ -267,20 +831,32 @@
                     sessionStorage.setItem(SESSION_KEY, "true");
                     checkMerchantAuth();
                 } else {
-                    alert("PIN o clave incorrecta para este restaurante.");
                     document.getElementById("merchantPinInput").value = "";
+                    document.getElementById("merchantPinInput").focus();
+                    showError("PIN incorrecto. Intentalo de nuevo.");
                 }
             } catch (err) {
-                alert("Error de conexión");
+                showError("Error de conexion con el servidor.");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-unlock-fill me-1"></i> Entrar al Panel';
+                btn.innerHTML = '<i class="bi bi-unlock-fill"></i> Entrar al Panel';
             }
         }
 
         function lockMerchantPanel() {
             sessionStorage.removeItem(SESSION_KEY);
             checkMerchantAuth();
+        }
+
+        function showError(msg) {
+            const existing = document.getElementById("error-toast");
+            if (existing) existing.remove();
+            const div = document.createElement("div");
+            div.id = "error-toast";
+            div.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1D1D1F;color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;font-weight:500;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.18);";
+            div.textContent = msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
         }
 
         // CREAR PRODUCTO
@@ -291,7 +867,7 @@
             const submitBtn = document.getElementById("submitBtn");
 
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Publicando...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:14px;height:14px;"></span> Publicando...';
 
             try {
                 const response = await fetch(`/api/restaurants/${RESTAURANT_ID}/products`, {
@@ -300,67 +876,73 @@
                 });
 
                 if (response.ok) {
-                    alert("¡Plato publicado exitosamente en tu menú!");
                     location.reload();
                 } else {
                     const err = await response.json();
-                    alert("Error al publicar: " + (err.detail || "Inténtalo de nuevo"));
+                    showError("Error: " + (err.detail || "Intentalo de nuevo"));
                 }
             } catch (error) {
-                console.error("Error:", error);
-                alert("Error de red conectando con el servidor");
+                showError("Error de red conectando con el servidor");
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i> Publicar Plato';
+                submitBtn.innerHTML = '<i class="bi bi-cloud-upload"></i> Publicar Plato';
             }
         }
 
-        // ALTERNAR DISPONIBILIDAD (DISPONIBLE / AGOTADO)
+        // ALTERNAR DISPONIBILIDAD
         async function toggleProduct(productId) {
             try {
                 const response = await fetch(`/api/restaurants/products/${productId}/toggle`, {
                     method: 'PATCH'
                 });
-                if (!response.ok) alert("No se pudo cambiar el estado del producto.");
+                if (!response.ok) showError("No se pudo cambiar el estado del producto.");
             } catch (e) {
-                alert("Error de conexión");
+                showError("Error de conexion");
             }
         }
 
         // ELIMINAR PRODUCTO
         async function deleteProduct(productId) {
-            if (!confirm("¿Estás seguro de que deseas eliminar este plato de tu menú?")) return;
+            if (!confirm("Estas seguro de que deseas eliminar este plato de tu menu?")) return;
             try {
                 const response = await fetch(`/api/restaurants/products/${productId}`, {
                     method: 'DELETE'
                 });
                 if (response.ok) location.reload();
-                else alert("Error eliminando el plato");
+                else showError("Error eliminando el plato");
             } catch (e) {
-                alert("Error de conexión");
+                showError("Error de conexion");
             }
         }
 
         // MARCAR PEDIDO COMO PREPARADO
         async function markOrderAsReady(orderId) {
-            if (!confirm("¿Confirmar que la comida ya está totalmente preparada y lista para entregar al domiciliario?")) return;
+            if (!confirm("Confirmar que la comida esta lista y puede ser entregada al domiciliario?")) return;
             try {
                 const response = await fetch(`/api/restaurants/orders/${orderId}/ready`, {
                     method: 'PATCH'
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    alert("✅ ¡Excelente! Pedido marcado como preparado. Se ha alertado automáticamente a todos los repartidores.");
-                    location.reload();
+                    showSuccess("Pedido marcado como preparado. Se alerto a los repartidores.");
+                    setTimeout(() => location.reload(), 1500);
                 } else {
-                    alert("Error: " + (data.detail || "No se pudo actualizar la orden."));
+                    showError("Error: " + (data.detail || "No se pudo actualizar la orden."));
                 }
             } catch (e) {
-                alert("Error de conexión con el servidor");
+                showError("Error de conexion con el servidor");
             }
         }
 
-        // Inicializar estado de autenticación
+        function showSuccess(msg) {
+            const div = document.createElement("div");
+            div.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#34C759;color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(52,199,89,0.3);display:flex;align-items:center;gap:8px;";
+            div.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 2500);
+        }
+
+        // Inicializar
         checkMerchantAuth();
     </script>
 </body>

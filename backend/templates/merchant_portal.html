@@ -3,42 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Comercios - Lorivery</title>
+    <title>Portal de Comercios — Lorivery Lorica</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
-        .restaurant-card {
-            border: none;
-            border-radius: 16px;
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        :root {
+            --ios-bg: #F5F5F7;
+            --ios-card: #FFFFFF;
+            --ios-dark: #1D1D1F;
+            --ios-secondary: #8E8E93;
+            --ios-red: #FF3B30;
+            --ios-blue: #007AFF;
+            --ios-green: #34C759;
+            --ios-border: rgba(0, 0, 0, 0.08);
+            --ios-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
         }
-        .restaurant-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+
+        body { 
+            background-color: var(--ios-bg); 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            color: var(--ios-dark);
+            -webkit-font-smoothing: antialiased;
         }
+
+        .navbar-ios {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--ios-border);
+        }
+
+        .card-ios {
+            background: var(--ios-card);
+            border: 1px solid var(--ios-border);
+            border-radius: 20px;
+            box-shadow: var(--ios-shadow);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-ios:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+        }
+
         .restaurant-logo {
-            width: 70px;
-            height: 70px;
+            width: 68px;
+            height: 68px;
             object-fit: cover;
-            border-radius: 12px;
+            border-radius: 16px;
+        }
+
+        .btn-ios-primary {
+            background-color: var(--ios-red);
+            color: #FFFFFF;
+            border-radius: 980px;
+            font-weight: 600;
+            padding: 10px 22px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.25);
+            transition: all 0.2s ease;
+        }
+
+        .btn-ios-primary:hover {
+            background-color: #E03126;
+            color: #FFFFFF;
+        }
+
+        .btn-ios-secondary {
+            background-color: #E5E5EA;
+            color: var(--ios-dark);
+            border-radius: 980px;
+            font-weight: 600;
+            padding: 10px 22px;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-ios-secondary:hover {
+            background-color: #D1D1D6;
+            color: var(--ios-dark);
         }
     </style>
 </head>
 <body>
     <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-danger shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light navbar-ios sticky-top">
         <div class="container">
-            <span class="navbar-brand fw-bold fs-4">
-                <i class="bi bi-shop me-2"></i> Lorivery — Portal de Comercios
-            </span>
+            <a href="/" class="navbar-brand fw-bold d-flex align-items-center text-dark fs-4">
+                <i class="bi bi-shop text-danger me-2"></i> Lorivery Comercios
+            </a>
             <div class="d-flex align-items-center gap-3">
-                <a href="/download" class="btn btn-warning btn-sm fw-bold rounded-pill px-3 shadow-sm text-dark">
-                    <i class="bi bi-download me-1"></i> Descargar Apps (.apk)
+                <a href="/download" class="btn btn-ios-secondary btn-sm">
+                    <i class="bi bi-download me-1"></i> Apps Móviles
                 </a>
-                <span class="navbar-text text-white d-none d-md-inline">
-                    <i class="bi bi-geo-alt-fill text-warning"></i> Lorica, Córdoba
+                <span class="text-secondary small d-none d-md-inline">
+                    <i class="bi bi-geo-alt-fill text-danger"></i> Lorica, Córdoba
                 </span>
             </div>
         </div>
@@ -46,37 +106,35 @@
 
     <div class="container py-4">
         <!-- BANNER DESCARGA DE APPS -->
-        <div class="card border-0 rounded-4 shadow-sm mb-4 text-white overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #dc2626 100%);">
-            <div class="card-body p-4 p-md-4">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <div class="d-flex align-items-center mb-2">
-                            <span class="badge bg-warning text-dark fw-bold me-2"><i class="bi bi-android2 me-1"></i> Apps Oficiales Android</span>
-                            <small class="text-white-50">Lorivery Lorica</small>
-                        </div>
-                        <h4 class="fw-bold mb-1 text-white">¿Tienes un teléfono Android? ¡Descarga las aplicaciones oficiales!</h4>
-                        <p class="text-white-50 small mb-0">Descarga la app de cliente para pedir o la de repartidores si prestas servicio de domicilio.</p>
+        <div class="card-ios p-4 mb-4" style="background: linear-gradient(135deg, #1D1D1F 0%, #2C2C2E 100%); color: white;">
+            <div class="row align-items-center g-3">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-danger text-white fw-semibold me-2 rounded-pill px-3 py-1">Apps Android</span>
+                        <small class="text-white-50">Lorivery Lorica</small>
                     </div>
-                    <div class="col-md-4 text-end mt-3 mt-md-0 d-flex gap-2 justify-content-md-end">
-                        <a href="/uploads/apks/Lorica-Cliente.apk" download="Lorica-Cliente.apk" class="btn btn-danger btn-sm fw-bold rounded-pill shadow">
-                            <i class="bi bi-download me-1"></i> App Cliente
-                        </a>
-                        <a href="/uploads/apks/Lorica-Repartidor.apk" download="Lorica-Repartidor.apk" class="btn btn-warning btn-sm text-dark fw-bold rounded-pill shadow">
-                            <i class="bi bi-download me-1"></i> App Repartidor
-                        </a>
-                    </div>
+                    <h5 class="fw-bold mb-1">Descarga las aplicaciones oficiales</h5>
+                    <p class="text-white-50 small mb-0">Disponibles para clientes y repartidores registrados en Lorica.</p>
+                </div>
+                <div class="col-md-4 text-md-end d-flex gap-2 justify-content-md-end">
+                    <a href="/uploads/apks/Lorica-Cliente.apk" download="Lorica-Cliente.apk" class="btn btn-ios-primary btn-sm">
+                        <i class="bi bi-download me-1"></i> App Cliente
+                    </a>
+                    <a href="/uploads/apks/Lorica-Repartidor.apk" download="Lorica-Repartidor.apk" class="btn btn-ios-secondary btn-sm">
+                        <i class="bi bi-download me-1"></i> App Domiciliario
+                    </a>
                 </div>
             </div>
         </div>
 
         <!-- HEADER -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <div>
-                <h2 class="fw-bold mb-1"><i class="bi bi-building text-danger me-2"></i> Mis Restaurantes</h2>
-                <p class="text-muted mb-0">Selecciona tu restaurante para administrar el menú o registra uno nuevo.</p>
+                <h3 class="fw-bold mb-1 text-dark"><i class="bi bi-building text-danger me-2"></i> Directorio de Negocios</h3>
+                <p class="text-secondary mb-0">Selecciona tu restaurante para administrar el menú o registra un nuevo establecimiento.</p>
             </div>
-            <button class="btn btn-danger fw-bold shadow-sm px-4 py-2" data-bs-toggle="modal" data-bs-target="#newRestaurantModal">
-                <i class="bi bi-plus-circle me-1"></i> Registrar Nuevo Restaurante
+            <button class="btn btn-ios-primary" data-bs-toggle="modal" data-bs-target="#newRestaurantModal">
+                <i class="bi bi-plus-lg me-1"></i> Registrar Restaurante
             </button>
         </div>
 
@@ -85,41 +143,41 @@
             {% if restaurants %}
                 {% for r in restaurants %}
                 <div class="col-md-6 col-lg-4">
-                    <div class="card restaurant-card h-100 p-3">
-                        <div class="card-body d-flex flex-column justify-content-between">
+                    <div class="card-ios p-4 h-100 d-flex flex-column justify-content-between">
+                        <div>
                             <div class="d-flex align-items-center mb-3">
                                 {% if r.logo_url %}
-                                    <img src="{{ r.logo_url }}" class="restaurant-logo me-3" alt="{{ r.name }}">
+                                    <img src="{{ r.logo_url }}" class="restaurant-logo me-3 border" alt="{{ r.name }}">
                                 {% else %}
-                                    <div class="restaurant-logo bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center me-3 fs-2">
+                                    <div class="restaurant-logo bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center me-3 fs-3">
                                         <i class="bi bi-shop"></i>
                                     </div>
                                 {% endif %}
                                 <div>
-                                    <h5 class="fw-bold mb-1">{{ r.name }}</h5>
-                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Activo en App</span>
+                                    <h5 class="fw-bold text-dark mb-1">{{ r.name }}</h5>
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Activo</span>
                                 </div>
                             </div>
-                            <p class="text-muted small mb-4">{{ r.description or 'Restaurante asociado a Lorivery' }}</p>
-                            <div class="d-flex gap-2">
-                                <a href="/merchant-web/{{ r.id }}/dashboard" class="btn btn-danger w-100 fw-bold">
-                                    <i class="bi bi-gear-wide-connected me-1"></i> Administrar Menú
-                                </a>
-                                <button class="btn btn-outline-danger" onclick="deleteRestaurant('{{ r.id }}', '{{ r.name }}')" title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
+                            <p class="text-secondary small mb-4">{{ r.description or 'Restaurante afiliado a Lorivery Lorica' }}</p>
+                        </div>
+                        <div class="d-flex gap-2 pt-3 border-top">
+                            <a href="/merchant-web/{{ r.id }}/dashboard" class="btn btn-ios-primary w-100">
+                                <i class="bi bi-sliders me-1"></i> Administrar Menú
+                            </a>
+                            <button class="btn btn-ios-secondary px-3" onclick="deleteRestaurant('{{ r.id }}', '{{ r.name }}')" title="Eliminar">
+                                <i class="bi bi-trash text-danger"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="col-12 text-center py-5 bg-white rounded-4 shadow-sm">
-                    <i class="bi bi-shop-window text-muted display-1"></i>
-                    <h4 class="mt-3 fw-bold text-dark">Aún no hay restaurantes registrados</h4>
-                    <p class="text-muted">Crea tu primer restaurante para empezar a subir tu menú y recibir pedidos desde la app de clientes.</p>
-                    <button class="btn btn-danger fw-bold shadow-sm px-4 py-2 mt-2" data-bs-toggle="modal" data-bs-target="#newRestaurantModal">
-                        <i class="bi bi-plus-circle me-1"></i> Registrar Mi Primer Restaurante
+                <div class="col-12 text-center py-5 card-ios">
+                    <i class="bi bi-shop text-secondary display-3"></i>
+                    <h4 class="mt-3 fw-bold text-dark">No hay restaurantes registrados</h4>
+                    <p class="text-secondary small">Registra tu establecimiento para publicar tus platos en la aplicación.</p>
+                    <button class="btn btn-ios-primary mt-2" data-bs-toggle="modal" data-bs-target="#newRestaurantModal">
+                        <i class="bi bi-plus-lg me-1"></i> Registrar Mi Restaurante
                     </button>
                 </div>
             {% endif %}
@@ -128,31 +186,36 @@
 
     <!-- MODAL CREAR RESTAURANTE -->
     <div class="modal fade" id="newRestaurantModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i> Registrar Nuevo Restaurante</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-ios p-2 border-0">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-plus-circle-fill text-danger me-2"></i> Registrar Restaurante</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="createRestaurantForm" onsubmit="saveRestaurant(event)">
-                    <div class="modal-body">
+                    <div class="modal-body py-3">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Nombre del Negocio / Restaurante</label>
-                            <input type="text" class="form-control" name="name" placeholder="Ej. Pizzería La Tradición Lorica" required>
+                            <label class="form-label fw-semibold text-dark">Nombre del Establecimiento</label>
+                            <input type="text" class="form-control rounded-3" name="name" placeholder="Ej. Pizzería La Tradición" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Descripción o Especialidad</label>
-                            <textarea class="form-control" name="description" rows="2" placeholder="Ej. Especialidad en pizzas artesanales y pastas"></textarea>
+                            <label class="form-label fw-semibold text-dark">Descripción o Especialidad</label>
+                            <textarea class="form-control rounded-3" name="description" rows="2" placeholder="Ej. Pizzas artesanales y bebidas frías"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Logo o Foto del Local (Opcional)</label>
-                            <input type="file" class="form-control" name="logo" accept="image/*">
+                            <label class="form-label fw-semibold text-dark">Clave o PIN Privado (4 dígitos)</label>
+                            <input type="password" class="form-control rounded-3 text-center fw-bold fs-5" name="pin" maxLength="4" placeholder="1234" required>
+                            <small class="text-secondary">Con este PIN ingresarás exclusivamente a administrar tu menú.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-dark">Logo o Foto del Negocio</label>
+                            <input type="file" class="form-control rounded-3" name="logo" accept="image/*" required>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-danger fw-bold" id="createBtn">
-                            <i class="bi bi-cloud-upload me-1"></i> Crear Restaurante
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-ios-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-ios-primary" id="createBtn">
+                            <i class="bi bi-check-lg me-1"></i> Registrar Restaurante
                         </button>
                     </div>
                 </form>
@@ -169,7 +232,7 @@
             const btn = document.getElementById("createBtn");
 
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creando...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
 
             try {
                 const res = await fetch('/api/restaurants/', {
@@ -178,8 +241,7 @@
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    alert("¡Restaurante registrado con éxito!");
-                    // Redirigir directamente al panel de menú del nuevo restaurante
+                    alert("¡Restaurante registrado exitosamente!");
                     window.location.href = data.dashboard_url;
                 } else {
                     alert("Error: " + (data.detail || "No se pudo registrar"));
@@ -189,18 +251,18 @@
                 alert("Error de conexión");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i> Crear Restaurante';
+                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Registrar Restaurante';
             }
         }
 
         async function deleteRestaurant(id, name) {
-            if (!confirm(`¿Estás seguro de eliminar "${name}" y todos sus productos?`)) return;
+            if (!confirm(`¿Estás seguro de eliminar "${name}" y todo su menú?`)) return;
             try {
                 const res = await fetch(`/api/restaurants/${id}`, { method: 'DELETE' });
                 if (res.ok) {
                     location.reload();
                 } else {
-                    alert("No se pudo eliminar el restaurante");
+                    alert("No se pudo eliminar el restaurante.");
                 }
             } catch (err) {
                 alert("Error de conexión");

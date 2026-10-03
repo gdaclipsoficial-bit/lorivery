@@ -3,162 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lorivery — La Plataforma de Delivery de Lorica</title>
+    <title>Lorivery — Plataforma Oficial de Delivery en Lorica</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #dc2626 100%);
-            --card-gradient-1: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
-            --card-gradient-2: linear-gradient(145deg, #2a1b24 0%, #0f172a 100%);
-            --accent-red: #ef4444;
-            --accent-yellow: #f59e0b;
+            --ios-bg: #F5F5F7;
+            --ios-card: #FFFFFF;
+            --ios-dark: #1D1D1F;
+            --ios-secondary: #8E8E93;
+            --ios-red: #FF3B30;
+            --ios-blue: #007AFF;
+            --ios-green: #34C759;
+            --ios-orange: #FF9500;
+            --ios-border: rgba(0, 0, 0, 0.08);
+            --ios-shadow: 0 10px 30px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-            background-color: #090d16;
-            color: #f1f5f9;
-            overflow-x: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            background-color: var(--ios-bg);
+            color: var(--ios-dark);
+            -webkit-font-smoothing: antialiased;
         }
 
-        .hero-section {
-            background: var(--primary-gradient);
-            padding: 80px 0 60px 0;
-            position: relative;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        .navbar-ios {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--ios-border);
         }
 
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle at 50% 30%, rgba(239, 68, 68, 0.15), transparent 70%);
-            pointer-events: none;
+        .hero-ios {
+            padding: 90px 0 60px 0;
+            background: radial-gradient(circle at 50% 0%, rgba(255, 59, 48, 0.05) 0%, transparent 60%);
         }
 
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .card-ios {
+            background: var(--ios-card);
+            border: 1px solid var(--ios-border);
             border-radius: 24px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--ios-shadow);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .glass-card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(239, 68, 68, 0.4);
-            box-shadow: 0 20px 40px -15px rgba(239, 68, 68, 0.25);
-        }
-
-        .app-card-client {
-            background: var(--card-gradient-1);
-            border-left: 4px solid var(--accent-red);
-        }
-
-        .app-card-courier {
-            background: var(--card-gradient-2);
-            border-left: 4px solid var(--accent-yellow);
-        }
-
-        .badge-pill {
-            padding: 6px 14px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-
-        .btn-download-red {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-            color: white;
-            border: none;
-            box-shadow: 0 8px 20px -4px rgba(220, 38, 38, 0.5);
-            transition: all 0.25s ease;
-        }
-
-        .btn-download-red:hover {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            transform: scale(1.02);
-            box-shadow: 0 12px 28px -4px rgba(220, 38, 38, 0.7);
-        }
-
-        .btn-download-yellow {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: #0f172a;
-            border: none;
-            box-shadow: 0 8px 20px -4px rgba(245, 158, 11, 0.5);
-            transition: all 0.25s ease;
-        }
-
-        .btn-download-yellow:hover {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #0f172a;
-            transform: scale(1.02);
-            box-shadow: 0 12px 28px -4px rgba(245, 158, 11, 0.7);
-        }
-
-        .portal-card {
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .portal-card:hover {
-            background: rgba(30, 41, 59, 0.9);
-            border-color: rgba(255, 255, 255, 0.2);
+        .card-ios:hover {
             transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border-color: rgba(0, 0, 0, 0.12);
         }
 
-        .feature-icon {
-            width: 54px;
-            height: 54px;
-            border-radius: 16px;
+        .btn-ios-primary {
+            background-color: var(--ios-red);
+            color: #FFFFFF;
+            border-radius: 980px;
+            font-weight: 600;
+            padding: 14px 28px;
+            border: none;
+            box-shadow: 0 4px 14px rgba(255, 59, 48, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-ios-primary:hover {
+            background-color: #E03126;
+            color: #FFFFFF;
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(255, 59, 48, 0.4);
+        }
+
+        .btn-ios-secondary {
+            background-color: #E5E5EA;
+            color: var(--ios-dark);
+            border-radius: 980px;
+            font-weight: 600;
+            padding: 14px 28px;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-ios-secondary:hover {
+            background-color: #D1D1D6;
+            color: var(--ios-dark);
+        }
+
+        .btn-ios-dark {
+            background-color: var(--ios-dark);
+            color: #FFFFFF;
+            border-radius: 980px;
+            font-weight: 600;
+            padding: 14px 28px;
+            border: none;
+            box-shadow: 0 4px 14px rgba(29, 29, 31, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .btn-ios-dark:hover {
+            background-color: #3A3A3C;
+            color: #FFFFFF;
+            transform: scale(1.02);
+        }
+
+        .badge-ios {
+            background-color: rgba(255, 59, 48, 0.1);
+            color: var(--ios-red);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 980px;
+            border: 1px solid rgba(255, 59, 48, 0.2);
+        }
+
+        .badge-ios-blue {
+            background-color: rgba(0, 122, 255, 0.1);
+            color: var(--ios-blue);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 980px;
+            border: 1px solid rgba(0, 122, 255, 0.2);
+        }
+
+        .icon-box-ios {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.6rem;
-            margin-bottom: 16px;
+            font-size: 1.5rem;
         }
 
-        .glow-effect {
-            position: relative;
-        }
-
-        .glow-effect::after {
-            content: '';
-            position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(45deg, #ef4444, #f59e0b, #ef4444);
-            border-radius: 26px;
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .glow-effect:hover::after {
-            opacity: 0.7;
+        .feature-pill {
+            background-color: #F2F2F7;
+            color: var(--ios-dark);
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
 
     <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 sticky-top border-bottom border-white border-opacity-10 backdrop-blur">
+    <nav class="navbar navbar-expand-lg navbar-light navbar-ios sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-extrabold fs-3 d-flex align-items-center" href="/">
-                <i class="bi bi-lightning-charge-fill text-warning me-2"></i>
-                <span class="text-white">Lori</span><span class="text-danger">very</span>
-                <span class="badge bg-danger ms-2 fs-6 fw-normal">Lorica, Córdoba</span>
+            <a class="navbar-brand fw-bold d-flex align-items-center text-dark" href="/">
+                <i class="bi bi-lightning-charge-fill text-danger me-2 fs-4"></i>
+                <span>Lorivery</span>
+                <span class="ms-2 badge bg-light text-secondary border fw-normal fs-6">Lorica, Córdoba</span>
             </a>
             <div class="d-flex gap-2">
-                <a href="/merchant-web/dashboard" class="btn btn-outline-light btn-sm rounded-pill px-3">
-                    <i class="bi bi-shop me-1"></i> Portal Comercios
+                <a href="/merchant-web/dashboard" class="btn btn-ios-secondary btn-sm px-3 py-2">
+                    <i class="bi bi-shop me-1"></i> Comercios
                 </a>
-                <a href="/admin-web/dashboard" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold">
+                <a href="/admin-web/dashboard" class="btn btn-ios-primary btn-sm px-3 py-2">
                     <i class="bi bi-shield-lock me-1"></i> Panel Admin
                 </a>
             </div>
@@ -166,49 +166,47 @@
     </nav>
 
     <!-- HERO SECTION -->
-    <section class="hero-section text-center text-md-start">
+    <section class="hero-ios text-center text-md-start">
         <div class="container">
             <div class="row align-items-center g-5">
                 <div class="col-lg-7">
-                    <span class="badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-30 badge-pill mb-3">
-                        <i class="bi bi-geo-alt-fill me-1"></i> Exclusivo para Lorica, Córdoba
+                    <span class="badge-ios mb-3 d-inline-flex align-items-center">
+                        <i class="bi bi-geo-alt-fill me-1"></i> Servicio Exclusivo en Lorica, Córdoba
                     </span>
-                    <h1 class="display-3 fw-extrabold text-white mb-3">
-                        El Sabor de Lorica en tu <span class="text-danger">Puerta</span> 🛵🍔
+                    <h1 class="display-4 fw-extrabold text-dark mb-3">
+                        Entregas Rápidas y Domicilios Locales
                     </h1>
-                    <p class="lead text-white-50 mb-4 fs-5">
-                        Pide de tus restaurantes favoritos con <strong>ubicación GPS automática</strong>, seguimiento en tiempo real y repartidores locales. Descarga nuestras aplicaciones oficiales para Android.
+                    <p class="lead text-secondary mb-4 fs-5">
+                        Plataforma oficial para realizar pedidos en tus restaurantes favoritos con seguimiento GPS en tiempo real, verificación de pagos y asignación inteligente.
                     </p>
                     <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-md-start">
-                        <a href="#apps-download" class="btn btn-download-red btn-lg rounded-pill px-4 fw-bold">
-                            <i class="bi bi-download me-2"></i> Descargar Apps APK
+                        <a href="#apps-download" class="btn btn-ios-primary">
+                            <i class="bi bi-download me-2"></i> Descargar Aplicaciones
                         </a>
-                        <a href="/merchant-web/dashboard" class="btn btn-outline-light btn-lg rounded-pill px-4">
-                            <i class="bi bi-building-add me-2"></i> Afiliar mi Negocio
+                        <a href="/merchant-web/dashboard" class="btn btn-ios-secondary">
+                            <i class="bi bi-building-add me-2"></i> Afiliar mi Restaurante
                         </a>
                     </div>
                 </div>
-                <div class="col-lg-5 text-center">
-                    <div class="position-relative d-inline-block">
-                        <div class="p-4 glass-card text-start shadow-lg">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="bg-danger bg-opacity-20 text-danger p-3 rounded-circle me-3 fs-3">
-                                    <i class="bi bi-phone-vibrate"></i>
-                                </div>
-                                <div>
-                                    <h5 class="fw-bold text-white mb-0">Ecosistema Móvil 2026</h5>
-                                    <small class="text-white-50">Cliente & Repartidor Android</small>
-                                </div>
+                <div class="col-lg-5">
+                    <div class="card-ios p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-box-ios bg-danger bg-opacity-10 text-danger me-3">
+                                <i class="bi bi-phone"></i>
                             </div>
-                            <hr class="border-white border-opacity-10">
-                            <div class="d-flex justify-content-between text-white-50 small mb-2">
-                                <span><i class="bi bi-check-circle-fill text-success me-1"></i> Ubicación GPS exacta</span>
-                                <span><i class="bi bi-check-circle-fill text-success me-1"></i> Chat en vivo</span>
+                            <div>
+                                <h5 class="fw-bold mb-0">Ecosistema Móvil Android</h5>
+                                <small class="text-secondary">Cliente & Repartidor</small>
                             </div>
-                            <div class="d-flex justify-content-between text-white-50 small">
-                                <span><i class="bi bi-check-circle-fill text-success me-1"></i> Pago Nequi / Efectivo</span>
-                                <span><i class="bi bi-check-circle-fill text-success me-1"></i> Código de entrega</span>
-                            </div>
+                        </div>
+                        <hr class="my-3 opacity-10">
+                        <div class="d-flex justify-content-between text-secondary small mb-2">
+                            <span><i class="bi bi-check-circle-fill text-success me-1"></i> Ubicación GPS exacta</span>
+                            <span><i class="bi bi-check-circle-fill text-success me-1"></i> Chat en tiempo real</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-secondary small">
+                            <span><i class="bi bi-check-circle-fill text-success me-1"></i> Pago Nequi & Efectivo</span>
+                            <span><i class="bi bi-check-circle-fill text-success me-1"></i> Código de seguridad</span>
                         </div>
                     </div>
                 </div>
@@ -219,13 +217,13 @@
     <!-- SECTION APPS DOWNLOAD -->
     <section id="apps-download" class="py-5">
         <div class="container py-4">
-            <div class="text-center mb-5">
-                <span class="badge bg-warning bg-opacity-20 text-warning border border-warning border-opacity-30 badge-pill mb-2">
-                    <i class="bi bi-android2 me-1"></i> Instalación Directa Android (.APK)
+            <div class="text-center mb-5 max-w-600 mx-auto">
+                <span class="badge-ios-blue mb-2 d-inline-flex align-items-center">
+                    <i class="bi bi-android2 me-1"></i> Descarga Directa de Archivos APK
                 </span>
-                <h2 class="display-5 fw-bold text-white">Descarga nuestras Apps Móviles</h2>
-                <p class="text-white-50 fs-5 max-w-600 mx-auto">
-                    Listas para instalar en cualquier dispositivo Android. Haz clic en el botón correspondiente para iniciar la descarga inmediata.
+                <h2 class="display-6 fw-bold text-dark mt-2">Aplicaciones Móviles Oficiales</h2>
+                <p class="text-secondary fs-5">
+                    Selecciona la aplicación correspondiente para iniciar la descarga en tu dispositivo Android.
                 </p>
             </div>
 
@@ -233,37 +231,37 @@
                 
                 <!-- APP CLIENTE -->
                 <div class="col-lg-6">
-                    <div class="glass-card app-card-client p-4 p-md-5 h-100 d-flex flex-column justify-content-between glow-effect">
+                    <div class="card-ios p-4 p-md-5 h-100 d-flex flex-column justify-content-between">
                         <div>
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div class="feature-icon bg-danger text-white shadow-lg">
-                                    <i class="bi bi-bag-heart-fill"></i>
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div class="icon-box-ios bg-danger text-white shadow-sm">
+                                    <i class="bi bi-bag-check-fill"></i>
                                 </div>
-                                <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-30 badge-pill">
-                                    <i class="bi bi-android2 me-1"></i> APK Android v1.0
+                                <span class="badge-ios">
+                                    <i class="bi bi-android2 me-1"></i> Android APK v1.0
                                 </span>
                             </div>
 
-                            <h3 class="fw-bold text-white mb-2">🛒 Lorivery Cliente</h3>
-                            <p class="text-white-50 mb-4">
-                                Para usuarios en Lorica. Explora menús actualizados de restaurantes locales, realiza pedidos con ubicación GPS automática, paga por Nequi o Efectivo y chatea en tiempo real con el repartidor.
+                            <h3 class="fw-bold text-dark mb-2">Lorivery Cliente</h3>
+                            <p class="text-secondary mb-4">
+                                Para clientes en Lorica. Explora restaurantes, realiza pedidos con cálculo de domicilio por GPS, transferencia Nequi/Efectivo, chat directo y seguimiento de orden.
                             </p>
 
                             <div class="mb-4">
                                 <div class="d-flex flex-wrap gap-2 mb-3">
-                                    <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10">📍 Ubicación GPS Automática</span>
-                                    <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10">💬 Chat en Tiempo Real</span>
-                                    <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10">📜 Historial de Pedidos</span>
-                                    <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10">🔑 Sesión Guardada</span>
+                                    <span class="feature-pill"><i class="bi bi-geo-alt me-1"></i> GPS Preciso</span>
+                                    <span class="feature-pill"><i class="bi bi-chat-dots me-1"></i> Chat en Vivo</span>
+                                    <span class="feature-pill"><i class="bi bi-star me-1"></i> Calificación Domiciliario</span>
+                                    <span class="feature-pill"><i class="bi bi-headset me-1"></i> Soporte Integrado</span>
                                 </div>
-                                <div class="d-flex align-items-center text-white-50 small">
-                                    <i class="bi bi-hdd-stack me-2 text-danger"></i> Tamaño del archivo: <strong class="text-white ms-1">24.3 MB</strong>
+                                <div class="text-secondary small">
+                                    <i class="bi bi-hdd-stack me-1"></i> Tamaño del instalador: <strong class="text-dark">24.9 MB</strong>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="pt-3 border-top border-white border-opacity-10">
-                            <a href="/uploads/apks/Lorica-Cliente.apk" download="Lorica-Cliente.apk" class="btn btn-download-red w-100 btn-lg rounded-pill fw-bold py-3">
+                        <div class="pt-3 border-top">
+                            <a href="/uploads/apks/Lorica-Cliente.apk" download="Lorica-Cliente.apk" class="btn btn-ios-primary w-100 py-3">
                                 <i class="bi bi-download me-2"></i> Descargar App Cliente (.apk)
                             </a>
                         </div>
@@ -272,37 +270,37 @@
 
                 <!-- APP REPARTIDOR -->
                 <div class="col-lg-6">
-                    <div class="glass-card app-card-courier p-4 p-md-5 h-100 d-flex flex-column justify-content-between glow-effect">
+                    <div class="card-ios p-4 p-md-5 h-100 d-flex flex-column justify-content-between">
                         <div>
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div class="feature-icon bg-warning text-dark shadow-lg">
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div class="icon-box-ios bg-dark text-white shadow-sm">
                                     <i class="bi bi-bicycle"></i>
                                 </div>
-                                <span class="badge bg-warning bg-opacity-20 text-warning border border-warning border-opacity-30 badge-pill">
-                                    <i class="bi bi-android2 me-1"></i> APK Android v1.0
+                                <span class="badge-ios-blue">
+                                    <i class="bi bi-android2 me-1"></i> Android APK v1.0
                                 </span>
                             </div>
 
-                            <h3 class="fw-bold text-white mb-2">🏍️ Lorivery Repartidor</h3>
-                            <p class="text-white-50 mb-4">
-                                Para repartidores en Lorica. Radar de pedidos disponibles con auto-actualización cada 4 segundos, mapas interactivos, validación por código de entrega de 4 dígitos y ganancias claras.
+                            <h3 class="fw-bold text-dark mb-2">Lorivery Repartidor</h3>
+                            <p class="text-secondary mb-4">
+                                Para domiciliarios en Lorica. Radar de pedidos disponibles con notificaciones sonoras, mapa interactivo, código de recogida y ganancia instantánea.
                             </p>
 
                             <div class="mb-4">
                                 <div class="d-flex flex-wrap gap-2 mb-3">
-                                    <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10">📡 Radar Auto-Actualizado</span>
-                                    <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10">🔑 Validación por Código</span>
-                                    <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10">🗺️ Navegación Interactiva</span>
-                                    <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10">📞 Llamada Directa</span>
+                                    <span class="feature-pill"><i class="bi bi-radar me-1"></i> Radar en Tiempo Real</span>
+                                    <span class="feature-pill"><i class="bi bi-bell me-1"></i> Alertas Sonoras</span>
+                                    <span class="feature-pill"><i class="bi bi-shield-check me-1"></i> Código de Entrega</span>
+                                    <span class="feature-pill"><i class="bi bi-wallet2 me-1"></i> Registro de Ganancias</span>
                                 </div>
-                                <div class="d-flex align-items-center text-white-50 small">
-                                    <i class="bi bi-hdd-stack me-2 text-warning"></i> Tamaño del archivo: <strong class="text-white ms-1">24.2 MB</strong>
+                                <div class="text-secondary small">
+                                    <i class="bi bi-hdd-stack me-1"></i> Tamaño del instalador: <strong class="text-dark">24.8 MB</strong>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="pt-3 border-top border-white border-opacity-10">
-                            <a href="/uploads/apks/Lorica-Repartidor.apk" download="Lorica-Repartidor.apk" class="btn btn-download-yellow w-100 btn-lg rounded-pill fw-bold py-3">
+                        <div class="pt-3 border-top">
+                            <a href="/uploads/apks/Lorica-Repartidor.apk" download="Lorica-Repartidor.apk" class="btn btn-ios-dark w-100 py-3">
                                 <i class="bi bi-download me-2"></i> Descargar App Repartidor (.apk)
                             </a>
                         </div>
@@ -312,28 +310,28 @@
             </div>
 
             <!-- PASOS DE INSTALACIÓN -->
-            <div class="mt-5 p-4 glass-card">
-                <h4 class="fw-bold text-white mb-3 text-center"><i class="bi bi-info-circle text-info me-2"></i> ¿Cómo instalar el archivo APK en tu Android?</h4>
+            <div class="mt-5 p-4 card-ios">
+                <h5 class="fw-bold text-dark mb-3 text-center"><i class="bi bi-info-circle text-primary me-2"></i> Guía rápida de instalación en Android</h5>
                 <div class="row g-3 text-center">
                     <div class="col-md-4">
-                        <div class="p-3 bg-white bg-opacity-5 rounded-4 h-100">
-                            <div class="fs-2 text-danger mb-2">1️⃣</div>
-                            <h6 class="fw-bold text-white">Descarga el APK</h6>
-                            <small class="text-white-50">Haz clic en el botón de la app que deseas arriba.</small>
+                        <div class="p-3 bg-light rounded-4 h-100 border">
+                            <div class="fw-bold text-danger mb-1">Paso 1</div>
+                            <h6 class="fw-bold text-dark">Descarga el APK</h6>
+                            <small class="text-secondary">Presiona el botón de la aplicación deseada arriba.</small>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="p-3 bg-white bg-opacity-5 rounded-4 h-100">
-                            <div class="fs-2 text-warning mb-2">2️⃣</div>
-                            <h6 class="fw-bold text-white">Autoriza Fuentes Desconocidas</h6>
-                            <small class="text-white-50">Al abrir el archivo, presiona "Permitir" si tu celular lo solicita.</small>
+                        <div class="p-3 bg-light rounded-4 h-100 border">
+                            <div class="fw-bold text-primary mb-1">Paso 2</div>
+                            <h6 class="fw-bold text-dark">Permite la Instalación</h6>
+                            <small class="text-secondary">Activa la opción de fuentes desconocidas si tu dispositivo lo solicita.</small>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="p-3 bg-white bg-opacity-5 rounded-4 h-100">
-                            <div class="fs-2 text-success mb-2">3️⃣</div>
-                            <h6 class="fw-bold text-white">¡Inicia Sesión!</h6>
-                            <small class="text-white-50">Disfruta de Lorivery en Lorica con sesión guardada automáticamente.</small>
+                        <div class="p-3 bg-light rounded-4 h-100 border">
+                            <div class="fw-bold text-success mb-1">Paso 3</div>
+                            <h6 class="fw-bold text-dark">Inicia Sesión</h6>
+                            <small class="text-secondary">Abre la app e ingresa con tu cuenta registrada en Lorivery.</small>
                         </div>
                     </div>
                 </div>
@@ -342,39 +340,39 @@
         </div>
     </section>
 
-    <!-- ACCESO RÁPIDO A PORTALES WEB -->
-    <section class="py-5 bg-dark bg-opacity-50 border-top border-white border-opacity-10">
+    <!-- PORTALES DE GESTIÓN WEB -->
+    <section class="py-5 bg-white border-top">
         <div class="container">
             <div class="text-center mb-4">
-                <h3 class="fw-bold text-white">Portales Web de Gestión</h3>
-                <p class="text-white-50">Accede directamente al panel de administración o al portal de comercios.</p>
+                <h3 class="fw-bold text-dark">Portales Web de Administración</h3>
+                <p class="text-secondary">Accede directamente según tu rol en la plataforma.</p>
             </div>
             <div class="row g-4 justify-content-center">
                 <div class="col-md-5">
                     <a href="/merchant-web/dashboard" class="text-decoration-none">
-                        <div class="portal-card p-4 d-flex align-items-center">
-                            <div class="bg-danger bg-opacity-20 text-danger p-3 rounded-4 me-3 fs-2">
+                        <div class="card-ios p-4 d-flex align-items-center">
+                            <div class="icon-box-ios bg-danger bg-opacity-10 text-danger me-3">
                                 <i class="bi bi-shop"></i>
                             </div>
                             <div>
-                                <h5 class="fw-bold text-white mb-1">Portal de Comercios</h5>
-                                <p class="text-white-50 small mb-0">Registra tu negocio, agrega platos al menú y administra pedidos.</p>
+                                <h5 class="fw-bold text-dark mb-1">Portal de Comercios</h5>
+                                <p class="text-secondary small mb-0">Administra menú, productos y confirma pedidos preparados.</p>
                             </div>
-                            <i class="bi bi-arrow-right text-white-50 ms-auto fs-4"></i>
+                            <i class="bi bi-chevron-right text-secondary ms-auto fs-5"></i>
                         </div>
                     </a>
                 </div>
                 <div class="col-md-5">
                     <a href="/admin-web/dashboard" class="text-decoration-none">
-                        <div class="portal-card p-4 d-flex align-items-center">
-                            <div class="bg-warning bg-opacity-20 text-warning p-3 rounded-4 me-3 fs-2">
+                        <div class="card-ios p-4 d-flex align-items-center">
+                            <div class="icon-box-ios bg-dark text-white me-3">
                                 <i class="bi bi-shield-lock-fill"></i>
                             </div>
                             <div>
-                                <h5 class="fw-bold text-white mb-1">Centro de Mando Admin</h5>
-                                <p class="text-white-50 small mb-0">Aprobación KYC, despacho de repartidores y control total.</p>
+                                <h5 class="fw-bold text-dark mb-1">Centro de Mando Admin</h5>
+                                <p class="text-secondary small mb-0">Verificación de pagos, aprobación KYC y gestión de soporte.</p>
                             </div>
-                            <i class="bi bi-arrow-right text-white-50 ms-auto fs-4"></i>
+                            <i class="bi bi-chevron-right text-secondary ms-auto fs-5"></i>
                         </div>
                     </a>
                 </div>
@@ -383,9 +381,9 @@
     </section>
 
     <!-- FOOTER -->
-    <footer class="py-4 text-center text-white-50 border-top border-white border-opacity-10">
+    <footer class="py-4 text-center text-secondary border-top bg-light">
         <div class="container">
-            <p class="mb-0">© 2026 <strong>Lorivery Lorica</strong>. Todos los derechos reservados. Hecho con ❤️ para Lorica, Córdoba.</p>
+            <p class="mb-0 small">© 2026 Lorivery. Plataforma oficial de domicilios de Lorica, Córdoba.</p>
         </div>
     </footer>
 

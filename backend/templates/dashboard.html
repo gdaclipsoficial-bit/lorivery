@@ -6,80 +6,139 @@
     <title>Lorivery — Centro de Control Maestro</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #f4f6f9; font-family: system-ui, -apple-system, sans-serif; }
-        .navbar-brand { font-weight: 800; letter-spacing: -0.5px; }
-        .nav-pills .nav-link {
-            border-radius: 12px;
+        :root {
+            --ios-bg: #F5F5F7;
+            --ios-card: #FFFFFF;
+            --ios-dark: #1D1D1F;
+            --ios-secondary: #8E8E93;
+            --ios-red: #FF3B30;
+            --ios-blue: #007AFF;
+            --ios-green: #34C759;
+            --ios-orange: #FF9500;
+            --ios-border: rgba(0, 0, 0, 0.08);
+            --ios-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+        }
+
+        body { 
+            background-color: var(--ios-bg); 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
+            color: var(--ios-dark);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .navbar-ios {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--ios-border);
+        }
+
+        .segmented-control {
+            background: #E5E5EA;
+            padding: 4px;
+            border-radius: 980px;
+            display: inline-flex;
+        }
+
+        .segmented-control .nav-link {
+            border-radius: 980px;
             font-weight: 600;
+            font-size: 0.95rem;
             padding: 10px 24px;
-            color: #495057;
-            transition: all 0.2s;
-        }
-        .nav-pills .nav-link.active {
-            background-color: #dc3545;
-            color: white;
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-        }
-        .nav-pills .nav-link:hover:not(.active) {
-            background-color: rgba(0,0,0,0.05);
-        }
-        .card-custom {
+            color: var(--ios-secondary);
             border: none;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
+        .segmented-control .nav-link.active {
+            background-color: #FFFFFF;
+            color: var(--ios-dark);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
+        }
+
+        .card-custom {
+            background: var(--ios-card);
+            border: 1px solid var(--ios-border);
+            border-radius: 20px;
+            box-shadow: var(--ios-shadow);
+            transition: all 0.25s ease;
+        }
+
+        .card-custom:hover {
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+        }
+
         .product-thumb {
-            width: 60px;
-            height: 60px;
+            width: 64px;
+            height: 64px;
             object-fit: cover;
-            border-radius: 12px;
+            border-radius: 14px;
         }
+
         .doc-thumb {
             height: 110px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             transition: transform 0.2s;
         }
-        .doc-thumb:hover { transform: scale(1.05); }
+        .doc-thumb:hover { transform: scale(1.04); }
+
         .proof-img {
             max-height: 280px;
             object-fit: contain;
-            background-color: #f8f9fa;
-            border-radius: 12px;
+            background-color: #F2F2F7;
+            border-radius: 14px;
         }
+
         .badge-code {
-            font-size: 1.6rem;
-            letter-spacing: 2px;
+            font-size: 1.8rem;
+            letter-spacing: 3px;
             font-weight: 800;
+            color: var(--ios-red);
         }
+
         .lock-container {
             max-width: 420px;
             margin: 40px auto;
+        }
+
+        .btn-ios-red {
+            background-color: var(--ios-red);
+            color: #FFFFFF;
+            border-radius: 980px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-ios-red:hover {
+            background-color: #E03126;
+            color: #FFFFFF;
         }
     </style>
 </head>
 <body>
 
     <!-- NAVBAR PRINCIPAL -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm py-3">
+    <nav class="navbar navbar-expand-lg navbar-light navbar-ios sticky-top shadow-sm py-3">
         <div class="container">
-            <a class="navbar-brand text-danger d-flex align-items-center" href="/admin-web/dashboard">
-                <i class="bi bi-lightning-charge-fill me-2 fs-3 text-warning"></i> 
-                <span class="text-white">Lori</span><span class="text-danger">very</span> 
-                <span class="badge bg-danger ms-2 fs-6 fw-normal">Centro de Mando</span>
+            <a class="navbar-brand d-flex align-items-center text-dark fw-bold fs-4" href="/admin-web/dashboard">
+                <i class="bi bi-lightning-charge-fill text-danger me-2 fs-3"></i> 
+                <span>Lorivery</span> 
+                <span class="badge bg-danger bg-opacity-10 text-danger ms-2 fs-6 fw-normal border border-danger border-opacity-20">Centro de Mando</span>
             </a>
             
             <div class="d-flex align-items-center gap-3">
-                <a href="/download" class="btn btn-warning btn-sm fw-bold rounded-pill px-3 shadow-sm">
+                <a href="/download" class="btn btn-outline-dark btn-sm fw-semibold rounded-pill px-3">
                     <i class="bi bi-download me-1"></i> Descargar Apps (.apk)
                 </a>
-                <span class="text-white-50 small d-none d-md-inline">
-                    <i class="bi bi-geo-alt-fill text-warning"></i> Lorica, Córdoba
+                <span class="text-secondary small d-none d-md-inline">
+                    <i class="bi bi-geo-alt-fill text-danger"></i> Lorica, Córdoba
                 </span>
-                <button class="btn btn-outline-light btn-sm" onclick="location.reload()">
+                <button class="btn btn-light btn-sm rounded-pill border" onclick="location.reload()">
                     <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
                 </button>
             </div>
@@ -88,30 +147,32 @@
 
     <div class="container py-4">
 
-        <!-- NAVEGACIÓN POR PESTAÑAS (PÚBLICA VS PRIVADA VS APPS) -->
-        <ul class="nav nav-pills justify-content-center mb-4 gap-3" id="mainTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active fs-5" id="tab-merchants-btn" data-bs-toggle="pill" data-bs-target="#tab-merchants" type="button" role="tab">
-                    <i class="bi bi-shop me-2"></i> 🍽️ Restaurantes y Menús
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link position-relative fs-5" id="tab-private-btn" data-bs-toggle="pill" data-bs-target="#tab-private" type="button" role="tab" onclick="checkAuthAccess()">
-                    <i class="bi bi-shield-lock-fill me-2 text-warning"></i> 🔒 Área Administrativa (Privada)
-                    {% set total_pending = (orders|length + pending_couriers|length + pending_restaurants|length) %}
-                    {% if total_pending > 0 %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-6">
-                        {{ total_pending }}
-                    </span>
-                    {% endif %}
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link fs-5" id="tab-apps-btn" data-bs-toggle="pill" data-bs-target="#tab-apps" type="button" role="tab">
-                    <i class="bi bi-phone-vibrate me-2 text-danger"></i> 📱 Descargar Apps Android
-                </button>
-            </li>
-        </ul>
+        <!-- NAVEGACIÓN POR PESTAÑAS (SEGMENTED CONTROL IOS) -->
+        <div class="text-center mb-4">
+            <ul class="nav nav-pills segmented-control gap-1" id="mainTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="tab-merchants-btn" data-bs-toggle="pill" data-bs-target="#tab-merchants" type="button" role="tab">
+                        <i class="bi bi-shop me-2"></i> Restaurantes y Menús
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link position-relative" id="tab-private-btn" data-bs-toggle="pill" data-bs-target="#tab-private" type="button" role="tab" onclick="checkAuthAccess()">
+                        <i class="bi bi-shield-lock-fill me-2 text-warning"></i> Área Administrativa
+                        {% set total_pending = (orders|length + pending_couriers|length + pending_restaurants|length) %}
+                        {% if total_pending > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-6">
+                            {{ total_pending }}
+                        </span>
+                        {% endif %}
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-apps-btn" data-bs-toggle="pill" data-bs-target="#tab-apps" type="button" role="tab">
+                        <i class="bi bi-phone me-2 text-danger"></i> Apps Móviles Android
+                    </button>
+                </li>
+            </ul>
+        </div>
 
         <div class="tab-content" id="mainTabsContent">
 
