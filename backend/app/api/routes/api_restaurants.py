@@ -26,6 +26,48 @@ async def get_restaurants(db: AsyncSession = Depends(get_db)):
         for r in restaurants
     ]
 
+@router.get("/catalog")
+async def get_menu_catalog(db: AsyncSession = Depends(get_db)):
+    """Obtiene el catálogo completo de platos y restaurantes disponibles en tiempo real."""
+    query_rest = select(Restaurant).where(Restaurant.is_active == True, Restaurant.is_approved == True)
+    result_rest = await db.execute(query_rest)
+    restaurants = result_rest.scalars().all()
+    
+    rest_ids = [r.id for r in restaurants]
+    rest_map = {r.id: r for r in restaurants}
+    
+    if not rest_ids:
+        return {"restaurants": [], "products": []}
+        
+    query_prod = select(Product).where(Product.restaurant_id.in_(rest_ids), Product.is_available == True)
+    result_prod = await db.execute(query_prod)
+    products = result_prod.scalars().all()
+    
+    return {
+        "restaurants": [
+            {
+                "id": r.id,
+                "name": r.name,
+                "description": r.description,
+                "logo_url": r.logo_url
+            }
+            for r in restaurants
+        ],
+        "products": [
+            {
+                "id": p.id,
+                "restaurant_id": p.restaurant_id,
+                "restaurant_name": rest_map.get(p.restaurant_id).name if rest_map.get(p.restaurant_id) else "Lorivery",
+                "name": p.name,
+                "description": p.description,
+                "price": p.price,
+                "image_url": p.image_url,
+                "is_available": p.is_available
+            }
+            for p in products
+        ]
+    }
+
 @router.get("/pending")
 async def get_pending_restaurants(db: AsyncSession = Depends(get_db)):
     """Obtiene la lista de restaurantes pendientes de aprobación por el Administrador."""

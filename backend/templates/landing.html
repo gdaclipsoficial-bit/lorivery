@@ -70,7 +70,7 @@
         .nav-links-custom {
             display: flex;
             align-items: center;
-            gap: 28px;
+            gap: 24px;
             list-style: none;
             margin: 0;
             padding: 0;
@@ -90,9 +90,9 @@
         }
 
         .btn-nav-action {
-            background-color: var(--color-black);
+            background-color: var(--color-red);
             color: var(--color-white);
-            border: 2px solid var(--color-black);
+            border: 2px solid var(--color-red);
             border-radius: 980px;
             padding: 8px 20px;
             font-size: 0.9rem;
@@ -105,8 +105,8 @@
         }
 
         .btn-nav-action:hover {
-            background-color: var(--color-red);
-            border-color: var(--color-red);
+            background-color: var(--color-black);
+            border-color: var(--color-black);
             color: var(--color-white);
         }
 
@@ -239,13 +239,156 @@
             margin: 0;
         }
 
+        /* ── SECCIÓN DE MENÚ EN TIEMPO REAL ── */
+        .section-menu-live {
+            padding: 60px 0;
+            background-color: var(--color-gray-bg);
+        }
+
+        .restaurant-filter-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .filter-pill-btn {
+            background-color: var(--color-white);
+            border: 1px solid var(--border-subtle);
+            color: var(--color-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 8px 18px;
+            border-radius: 980px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-pill-btn:hover,
+        .filter-pill-btn.active {
+            background-color: var(--color-black);
+            color: var(--color-white);
+            border-color: var(--color-black);
+        }
+
+        .card-menu-item {
+            background: var(--color-white);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card-menu-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08);
+        }
+
+        .menu-img-wrap {
+            width: 100%;
+            height: 180px;
+            background-color: var(--color-gray-light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .menu-restaurant-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            color: var(--color-white);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 980px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-menu-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+
+        .menu-item-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--color-dark);
+            margin-bottom: 6px;
+        }
+
+        .menu-item-desc {
+            font-size: 0.85rem;
+            color: var(--color-gray-text);
+            margin-bottom: 16px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .menu-item-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .menu-item-price {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: var(--color-black);
+        }
+
+        .btn-order-modal-trigger {
+            background-color: var(--color-red);
+            color: var(--color-white);
+            border: none;
+            border-radius: 980px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-order-modal-trigger:hover {
+            background-color: var(--color-black);
+            transform: scale(1.04);
+        }
+
         /* ── SECCIÓN DE DESCARGA DE APKS ── */
         .section-apps {
             padding: 70px 0;
+            background-color: var(--color-white);
+            border-top: 1px solid var(--border-subtle);
         }
 
         .card-app-download {
-            background: var(--color-white);
+            background: var(--color-gray-bg);
             border: 1px solid var(--border-subtle);
             border-radius: 24px;
             padding: 36px 30px;
@@ -325,7 +468,7 @@
         }
 
         .feature-pill-tag {
-            background-color: var(--color-gray-bg);
+            background-color: var(--color-white);
             color: var(--color-dark);
             font-size: 0.8rem;
             font-weight: 600;
@@ -364,6 +507,20 @@
             font-size: 0.9rem;
         }
 
+        /* Modal Redirigir a App */
+        .modal-redirect-app .modal-content {
+            border-radius: 24px;
+            border: none;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .modal-header-red {
+            background-color: var(--color-red);
+            color: var(--color-white);
+            padding: 20px 24px;
+        }
+
         /* ── RESPONSIVE MOBILE ── */
         @media (max-width: 768px) {
             .nav-links-custom {
@@ -398,7 +555,7 @@
 </head>
 <body>
 
-    <!-- NAVBAR NAVEGACIÓN SUPERIOR -->
+    <!-- NAVBAR NAVEGACIÓN PRINCIPAL (DIVISIÓN LIMPIA DE PANTALLAS REALES) -->
     <header class="navbar-lorivery">
         <div class="container d-flex align-items-center justify-content-between">
             <a href="/" class="navbar-brand-logo">
@@ -409,19 +566,16 @@
                 <span>LORIVERY</span>
             </a>
 
-            <!-- ENLACES DE NAVEGACIÓN -->
+            <!-- ENLACES REALES SIN RELLENO INEXISTENTE -->
             <ul class="nav-links-custom">
                 <li><a href="/" class="active">Inicio</a></li>
-                <li><a href="#apps-download">Restaurantes</a></li>
-                <li><a href="#apps-download">Menú</a></li>
-                <li><a href="#apps-download">Pedidos</a></li>
-                <li><a href="/merchant-web/dashboard">Perfil</a></li>
+                <li><a href="#menu-section">Menú en Vivo</a></li>
+                <li><a href="#apps-download">Descargar App</a></li>
+                <li><a href="/merchant-web/dashboard">Panel Comercios</a></li>
+                <li><a href="/admin-web/dashboard">Panel Admin</a></li>
             </ul>
 
             <div class="d-flex align-items-center gap-2">
-                <a href="/merchant-web/dashboard" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-2 fw-bold d-none d-md-inline-flex">
-                    <i class="bi bi-shop me-1"></i> Comercios
-                </a>
                 <a href="#apps-download" class="btn-nav-action">
                     <i class="bi bi-download"></i> Descargar App
                 </a>
@@ -446,7 +600,7 @@
 
                 <!-- CALL TO ACTION (CTA) -->
                 <div class="hero-cta-container">
-                    <a href="#apps-download" class="btn-pide-ahora">
+                    <a href="#menu-section" class="btn-pide-ahora">
                         <i class="bi bi-lightning-fill"></i> ¡PIDE AHORA!
                     </a>
                 </div>
@@ -484,17 +638,49 @@
     </section>
 
     <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- SECCIÓN MENÚ EN TIEMPO REAL (CARGADO DESDE LA BASE DE DATOS)   -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <section id="menu-section" class="section-menu-live">
+        <div class="container">
+            <div class="text-center mb-4">
+                <span class="badge-app-pill badge-red mb-2 d-inline-flex align-items-center">
+                    <i class="bi bi-fire me-1"></i> Catálogo en Tiempo Real
+                </span>
+                <h2 class="display-6 fw-bold text-dark mt-1">Platos Disponibles en Lorica</h2>
+                <p class="text-secondary fs-5 mb-3">
+                    Explora los platos que los restaurantes afiliados tienen preparados para ti.
+                </p>
+
+                <!-- FILTROS POR RESTAURANTE -->
+                <div class="restaurant-filter-pills" id="restaurant-filters">
+                    <button class="filter-pill-btn active" onclick="filterCatalog('all')">Todos los Restaurantes</button>
+                </div>
+            </div>
+
+            <!-- GRID DE PLATOS EN TIEMPO REAL -->
+            <div class="row g-4" id="catalog-products-container">
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border text-danger" role="status">
+                        <span class="visually-hidden">Cargando menú en vivo...</span>
+                    </div>
+                    <p class="text-secondary mt-2">Cargando platos disponibles...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
     <!-- SECCIÓN DE DESCARGA DE APLICACIONES MÓVILES (APKs)             -->
     <!-- ══════════════════════════════════════════════════════════════ -->
     <section id="apps-download" class="section-apps">
         <div class="container">
             <div class="text-center mb-5 max-w-600 mx-auto">
-                <span class="badge-app-pill badge-red mb-2 d-inline-flex align-items-center">
+                <span class="badge-app-pill badge-black mb-2 d-inline-flex align-items-center">
                     <i class="bi bi-android2 me-1"></i> Descarga Directa APK Oficial
                 </span>
-                <h2 class="display-6 fw-bold text-dark mt-2">Descarga la App en tu Android</h2>
+                <h2 class="display-6 fw-bold text-dark mt-2">Instala la App y Pide en Segundos</h2>
                 <p class="text-secondary fs-5">
-                    Elige la versión correspondiente y comienza a disfrutar de Lorivery en Lorica, Córdoba.
+                    Para confirmar tu dirección, pagar con Nequi o Efectivo y rastrear tu pedido en vivo por GPS.
                 </p>
             </div>
 
@@ -515,7 +701,7 @@
 
                             <h3 class="fw-bold text-dark mb-2">Lorivery Cliente</h3>
                             <p class="text-secondary mb-4">
-                                Explora restaurantes locales en Lorica, arma tu pedido con tarifa fija justa (\$3.000 COP / km), paga por Nequi o Efectivo, chatea con el repartidor y rastrea tu comida en tiempo real.
+                                Para pedir comida en Lorica. Con cálculo de domicilio por GPS (\$3.000 COP / km), pago por Nequi/Efectivo, chat directo con el domiciliario y seguimiento en tiempo real.
                             </p>
 
                             <div class="mb-4">
@@ -554,7 +740,7 @@
 
                             <h3 class="fw-bold text-dark mb-2">Lorivery Repartidor</h3>
                             <p class="text-secondary mb-4">
-                                Para domiciliarios en Lorica. Recibe alertas sonoras instantáneas cuando un restaurante prepara un pedido, visualiza la ruta de entrega, confirma códigos de seguridad y registra tus ganancias.
+                                Para domiciliarios en Lorica. Recibe alertas sonoras cuando el restaurante prepare el pedido, valida con código seguro y gana por cada entrega realizada.
                             </p>
 
                             <div class="mb-4">
@@ -579,48 +765,17 @@
                 </div>
 
             </div>
-
-            <!-- GUÍA DE INSTALACIÓN -->
-            <div class="mt-5 p-4 bg-white rounded-4 border" style="box-shadow: var(--shadow-soft);">
-                <h5 class="fw-bold text-dark mb-3 text-center">
-                    <i class="bi bi-info-circle-fill text-danger me-2"></i> Instalación Rápida en 3 Pasos
-                </h5>
-                <div class="row g-3 text-center">
-                    <div class="col-md-4">
-                        <div class="p-3 bg-light rounded-4 h-100 border">
-                            <div class="fw-bold text-danger mb-1">PASO 1</div>
-                            <h6 class="fw-bold text-dark">Descarga el APK</h6>
-                            <small class="text-secondary">Haz clic en el botón rojo o negro de la app deseada.</small>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3 bg-light rounded-4 h-100 border">
-                            <div class="fw-bold text-dark mb-1">PASO 2</div>
-                            <h6 class="fw-bold text-dark">Permite la Instalación</h6>
-                            <small class="text-secondary">Habilita "Instalar aplicaciones desconocidas" en tu Android si se solicita.</small>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3 bg-light rounded-4 h-100 border">
-                            <div class="fw-bold text-danger mb-1">PASO 3</div>
-                            <h6 class="fw-bold text-dark">Abre e Inicia Sesión</h6>
-                            <small class="text-secondary">Ingresa con tu cuenta registrada o crea una nueva en segundos.</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </section>
 
     <!-- ══════════════════════════════════════════════════════════════ -->
-    <!-- PORTALES DE GESTIÓN WEB                                        -->
+    <!-- PORTALES DE GESTIÓN WEB (COMERCIOS Y ADMIN)                    -->
     <!-- ══════════════════════════════════════════════════════════════ -->
     <section class="py-5 bg-white border-top">
         <div class="container">
             <div class="text-center mb-4">
-                <h3 class="fw-bold text-dark">Portales Web de Gestión</h3>
-                <p class="text-secondary">Accede directamente según tu rol en la plataforma.</p>
+                <h3 class="fw-bold text-dark">Portales Web del Sistema</h3>
+                <p class="text-secondary">Accede directamente al panel correspondiente a tu rol.</p>
             </div>
             <div class="row g-4 justify-content-center">
                 <div class="col-md-5">
@@ -629,8 +784,8 @@
                             <i class="bi bi-shop"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h5 class="fw-bold text-dark mb-1">Portal de Comercios</h5>
-                            <p class="text-secondary small mb-0">Publica platos, gestiona menú y confirma órdenes preparadas.</p>
+                            <h5 class="fw-bold text-dark mb-1">Panel de Comercios</h5>
+                            <p class="text-secondary small mb-0">Publica platos, gestiona menú y confirma pedidos listos.</p>
                         </div>
                         <i class="bi bi-chevron-right text-secondary fs-5"></i>
                     </a>
@@ -642,7 +797,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <h5 class="fw-bold text-dark mb-1">Centro de Mando Admin</h5>
-                            <p class="text-secondary small mb-0">Verificación de pagos, aprobación KYC y soporte general.</p>
+                            <p class="text-secondary small mb-0">Verificación de pagos, tickets de soporte y control total.</p>
                         </div>
                         <i class="bi bi-chevron-right text-secondary fs-5"></i>
                     </a>
@@ -659,6 +814,155 @@
         </div>
     </footer>
 
+    <!-- MODAL PARA REDIRIGIR A INSTALAR LA APP AL HACER CLIC EN PEDIR -->
+    <div class="modal fade modal-redirect-app" id="orderRedirectModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header-red d-flex align-items-center justify-content-between">
+                    <h5 class="modal-title fw-bold mb-0">
+                        <i class="bi bi-bag-check-fill me-2"></i> ¡Pide con la App Lorivery!
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3 text-danger fs-1">
+                        <i class="bi bi-phone-vibrate"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark" id="modal-dish-name">Plato Seleccionado</h4>
+                    <p class="text-secondary mb-4" id="modal-dish-desc">
+                        Para ordenar este plato a domicilio con seguimiento GPS exacto y pago Nequi/Efectivo, abre o descarga la App Oficial.
+                    </p>
+
+                    <div class="d-grid gap-2">
+                        <a href="/uploads/apks/Lorica-Cliente.apk" download="Lorica-Cliente.apk" class="btn-download-red py-3">
+                            <i class="bi bi-download me-2"></i> Descargar App Cliente Android
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary rounded-pill py-2 mt-2" data-bs-dismiss="modal">
+                            Seguir explorando el menú
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allCatalogProducts = [];
+        let allRestaurants = [];
+        let activeRestaurantFilter = 'all';
+
+        async function loadLiveMenu() {
+            try {
+                const res = await fetch('/api/restaurants/catalog');
+                if (!res.ok) throw new Error("Error cargando catálogo");
+                const data = await res.json();
+                
+                allRestaurants = data.restaurants || [];
+                allCatalogProducts = data.products || [];
+
+                renderFilterPills();
+                renderProducts();
+            } catch (err) {
+                console.error(err);
+                document.getElementById('catalog-products-container').innerHTML = `
+                    <div class="col-12 text-center py-5 bg-white rounded-4 border">
+                        <i class="bi bi-shop text-danger fs-1 mb-2 d-block"></i>
+                        <h5 class="fw-bold text-dark">Explora los Restaurantes de Lorica</h5>
+                        <p class="text-secondary mb-3">Descarga la App para ver el menú completo actualizado al instante.</p>
+                        <a href="#apps-download" class="btn btn-pide-ahora px-4 py-2 fs-6">
+                            <i class="bi bi-download me-1"></i> Descargar App Cliente
+                        </a>
+                    </div>
+                `;
+            }
+        }
+
+        function renderFilterPills() {
+            const container = document.getElementById('restaurant-filters');
+            if (!container) return;
+
+            let html = `<button class="filter-pill-btn ${activeRestaurantFilter === 'all' ? 'active' : ''}" onclick="filterCatalog('all')">Todos</button>`;
+            
+            allRestaurants.forEach(r => {
+                html += `
+                    <button class="filter-pill-btn ${activeRestaurantFilter === r.id ? 'active' : ''}" onclick="filterCatalog('${r.id}')">
+                        ${r.name}
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function filterCatalog(restaurantId) {
+            activeRestaurantFilter = restaurantId;
+            renderFilterPills();
+            renderProducts();
+        }
+
+        function renderProducts() {
+            const container = document.getElementById('catalog-products-container');
+            if (!container) return;
+
+            let filtered = allCatalogProducts;
+            if (activeRestaurantFilter !== 'all') {
+                filtered = allCatalogProducts.filter(p => p.restaurant_id === activeRestaurantFilter);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5 bg-white rounded-4 border">
+                        <i class="bi bi-basket text-secondary fs-1 mb-2 d-block"></i>
+                        <h5 class="fw-bold text-dark">No hay platos publicados en esta categoría</h5>
+                        <p class="text-secondary mb-0">Los restaurantes están preparando nuevos platos en tiempo real.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(p => {
+                const img = p.image_url || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80';
+                const formattedPrice = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(p.price);
+
+                html += `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card-menu-item">
+                            <div class="menu-img-wrap">
+                                <img src="${img}" alt="${p.name}">
+                                <div class="menu-restaurant-badge">
+                                    <i class="bi bi-shop"></i> ${p.restaurant_name}
+                                </div>
+                            </div>
+                            <div class="card-menu-body">
+                                <div>
+                                    <h4 class="menu-item-title">${p.name}</h4>
+                                    <p class="menu-item-desc">${p.description || 'Delicioso plato preparado con ingredientes frescos y locales.'}</p>
+                                </div>
+                                <div class="menu-item-footer">
+                                    <div class="menu-item-price">${formattedPrice}</div>
+                                    <button class="btn-order-modal-trigger" onclick="promptAppOrder('${p.name.replace(/'/g, "\\'")}', '${(p.description || '').replace(/'/g, "\\'")}')">
+                                        <i class="bi bi-bag-plus-fill"></i> Pedir en App
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function promptAppOrder(name, desc) {
+            document.getElementById('modal-dish-name').textContent = `¿Quieres pedir ${name}?`;
+            const modal = new bootstrap.Modal(document.getElementById('orderRedirectModal'));
+            modal.show();
+        }
+
+        // Cargar menú al iniciar
+        document.addEventListener('DOMContentLoaded', loadLiveMenu);
+    </script>
 </body>
 </html>
