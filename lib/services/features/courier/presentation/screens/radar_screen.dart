@@ -12,6 +12,7 @@ import 'package:chatbox/core/config/api_config.dart';
 import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 import 'package:chatbox/services/features/courier/presentation/screens/active_trip_screen.dart';
 import 'package:chatbox/services/features/courier/presentation/screens/courier_profile_screen.dart' as profile;
+import 'package:chatbox/services/features/courier/presentation/screens/courier_history_screen.dart';
 import 'package:flutter/services.dart';
 
 class RadarScreen extends ConsumerStatefulWidget {
@@ -178,6 +179,17 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const profile.CourierProfileScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.history_rounded),
+              title: const Text('Historial de Entregas'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CourierOrderHistoryScreen()),
                 );
               },
             ),

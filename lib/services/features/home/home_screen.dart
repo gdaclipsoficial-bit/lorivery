@@ -7,6 +7,7 @@ import 'package:chatbox/core/config/api_config.dart';
 import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 import '../restaurants/restaurants_screen.dart'; 
 import '../restaurants/restaurant_menu_screen.dart';
+import '../client/presentation/screens/order_history_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -68,6 +69,14 @@ class HomeScreen extends ConsumerWidget {
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const RestaurantsScreen()));
+              },
+            ),
+            _buildDrawerItem(
+              icon: Icons.receipt_long_rounded, 
+              title: 'Mis Pedidos', 
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ClientOrderHistoryScreen()));
               },
             ),
             const Padding(

@@ -333,91 +333,118 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with SingleTickerProvid
     final isCourierApp = currentRole == 'COURIER';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F7),
+      backgroundColor: const Color(0xFFF4F5F7),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 440),
-              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.grey.shade300, width: 0.8),
+                borderRadius: BorderRadius.circular(28),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
                   )
                 ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        isCourierApp ? Icons.motorcycle_rounded : Icons.electric_moped_rounded,
-                        size: 36,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    isCourierApp ? 'Lorivery Repartidores' : 'Lorivery',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.black87),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    isCourierApp ? 'Panel exclusivo para motorizados' : 'La ciudad en tus manos',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                  ),
-                  const SizedBox(height: 28),
-
+                  // Banner Header con Gradiente Premium
                   Container(
-                    padding: const EdgeInsets.all(4),
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF2F2F7),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: TabBar(
-                      controller: _tabController,
-                      indicator: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          )
-                        ],
+                      gradient: LinearGradient(
+                        colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.85)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      labelColor: Colors.black87,
-                      unselectedLabelColor: Colors.grey,
-                      labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                      tabs: const [Tab(text: 'Iniciar Sesión'), Tab(text: 'Registrarse')],
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isCourierApp ? Icons.two_wheeler_rounded : Icons.electric_moped_rounded,
+                            size: 38,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          isCourierApp ? 'LORIVERY REPARTIDORES' : 'LORIVERY',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          isCourierApp ? 'Portal de domiciliarios autorizados' : 'Domicilios rápidos en todo Lorica',
+                          style: const TextStyle(
+                            color: Colors.white90,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 24),
 
-                  AnimatedBuilder(
-                    animation: _tabController,
-                    builder: (context, child) {
-                      return _tabController.index == 0 ? _buildLoginView() : _buildRegisterView(isCourierApp);
-                    },
+                  Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Selector TabBar Limpio Estilo iOS
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F3F5),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: TabBar(
+                            controller: _tabController,
+                            indicator: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                )
+                              ],
+                            ),
+                            labelColor: Colors.black87,
+                            unselectedLabelColor: Colors.grey.shade600,
+                            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            tabs: const [Tab(text: 'Iniciar Sesión'), Tab(text: 'Registrarse')],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        AnimatedBuilder(
+                          animation: _tabController,
+                          builder: (context, child) {
+                            return _tabController.index == 0 ? _buildLoginView() : _buildRegisterView(isCourierApp);
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

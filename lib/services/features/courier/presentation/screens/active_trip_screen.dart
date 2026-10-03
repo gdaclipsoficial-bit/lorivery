@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:chatbox/core/config/api_config.dart';
 import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
+import 'package:chatbox/services/features/chat/order_chat_dialog.dart';
 
 class ActiveTripScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> orderData;
@@ -248,6 +249,56 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                             Text(deliveryAddress, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           ],
                         ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (_) => OrderChatModal(
+                                orderId: orderId.toString(),
+                                otherPartyName: 'Cliente',
+                                otherPartyPhone: '3000000000',
+                                userRole: 'COURIER',
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                          label: const Text('Chat con Cliente'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              title: const Text('Llamar al Cliente'),
+                              content: const Text('Teléfono: 3000000000'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cerrar')),
+                              ],
+                            ),
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.green),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        icon: const Icon(Icons.phone, color: Colors.green, size: 18),
+                        label: const Text('Llamar', style: TextStyle(color: Colors.green)),
                       ),
                     ],
                   ),

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chatbox/core/config/api_config.dart';
 import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
+import 'package:chatbox/services/features/chat/order_chat_dialog.dart';
 
 class OrderTrackingScreen extends ConsumerStatefulWidget {
   final String orderId;
@@ -269,13 +270,52 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                             ],
                           ),
                         ),
-                        IconButton(
-                          onPressed: () {},
-                          icon: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), shape: BoxShape.circle),
-                            child: const Icon(Icons.phone, color: Colors.green, size: 20),
-                          ),
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (_) => OrderChatModal(
+                                    orderId: widget.orderId,
+                                    otherPartyName: _courier!['name'] ?? 'Repartidor',
+                                    otherPartyPhone: _courier!['phone_number'] ?? '3001234567',
+                                    userRole: 'CLIENT',
+                                  ),
+                                );
+                              },
+                              icon: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(color: primaryColor.withValues(alpha: 0.1), shape: BoxShape.circle),
+                                child: Icon(Icons.chat_bubble_rounded, color: primaryColor, size: 20),
+                              ),
+                              tooltip: 'Chat con Repartidor',
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                final phone = _courier!['phone_number'] ?? '3001234567';
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                    title: const Text('Llamar al Repartidor'),
+                                    content: Text('Número: $phone'),
+                                    actions: [
+                                      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cerrar')),
+                                    ],
+                                  ),
+                                );
+                              },
+                              icon: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), shape: BoxShape.circle),
+                                child: const Icon(Icons.phone, color: Colors.green, size: 20),
+                              ),
+                              tooltip: 'Llamar',
+                            ),
+                          ],
                         ),
                       ],
                     ),
