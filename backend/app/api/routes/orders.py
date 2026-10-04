@@ -461,11 +461,20 @@ async def create_order_support_ticket(
     """
     Crea una queja o solicitud de ayuda para un pedido.
     """
-    from app.models.domain import SupportTicket
+    from app.models.domain import SupportTicket, Order
     import datetime
+    import uuid
+
+    # Validar si order_id existe en la base de datos para no violar Foreign Key
+    valid_order_id = None
+    if order_id and order_id != "GENERAL":
+        check_o = await db.execute(select(Order.id).where(Order.id == order_id))
+        if check_o.scalar():
+            valid_order_id = order_id
 
     ticket = SupportTicket(
-        order_id=order_id,
+        id=str(uuid.uuid4()),
+        order_id=valid_order_id,
         user_id=current_user["sub"],
         subject=payload.subject,
         description=payload.description,

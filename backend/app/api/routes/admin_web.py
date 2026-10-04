@@ -119,12 +119,61 @@ async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
             "products": products
         })
 
-    # 6. Tickets de Soporte
-    ticket_q = select(SupportTicket).order_by(SupportTicket.id.desc())
+    # 6. Tickets de Soporte con datos del usuario
+    ticket_q = (
+        select(SupportTicket, User)
+        .outerjoin(User, SupportTicket.user_id == User.id)
+        .order_by(SupportTicket.id.desc())
+    )
     ticket_res = await db.execute(ticket_q)
-    support_tickets = ticket_res.scalars().all()
+    support_tickets = []
+    for ticket, user in ticket_res.all():
+        support_tickets.append({
+            "id": ticket.id,
+            "order_id": ticket.order_id,
+            "subject": ticket.subject,
+            "description": ticket.description,
+            "status": ticket.status,
+            "created_at": ticket.created_at,
+            "user_name": user.name if user else "Usuario Lorivery",
+            "user_email": user.email if user else "No registrado"
+        })
 
-    # 7. Estadísticas y Contadores para el panel
+    # 7. Repartidores Aprobados con sus Calificaciones y Reseñas
+    app_cour_q = (
+        select(Courier, User)
+        .join(User, Courier.user_id == User.id)
+        .where(Courier.is_approved == True)
+    )
+    app_cour_res = await db.execute(app_cour_q)
+    approved_couriers_list = []
+    for c, u in app_cour_res.all():
+        # Obtener últimas reseñas para este repartidor
+        feedbacks_q = (
+            select(Order.courier_rating, Order.courier_feedback, Order.id)
+            .where(Order.courier_id == c.user_id, Order.courier_rating.isnot(None))
+            .order_by(Order.id.desc())
+            .limit(5)
+        )
+        feed_res = await db.execute(feedbacks_q)
+        feedbacks = [
+            {"rating": f[0], "comment": f[1] or "Sin comentario", "order_id": f[2]}
+            for f in feed_res.all()
+        ]
+
+        approved_couriers_list.append({
+            "courier_id": c.user_id,
+            "name": u.name,
+            "email": u.email,
+            "phone_number": c.phone_number or "No registrado",
+            "vehicle_type": c.vehicle_type,
+            "rating": round(float(c.rating or 5.0), 1),
+            "balance": c.balance,
+            "is_available": c.is_available,
+            "feedbacks": feedbacks
+        })
+
+    # 8. Estadísticas y Contadores para el panel
     u_res = await db.execute(select(func.count(User.id)))
     total_users = u_res.scalar() or 0
 
@@ -147,6 +196,7 @@ async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
             "orders": orders,
             "active_orders": active_orders,
             "pending_couriers": pending_couriers,
+            "approved_couriers_list": approved_couriers_list,
             "pending_restaurants": pending_restaurants,
             "restaurants": restaurants_data,
             "support_tickets": support_tickets,

@@ -25,6 +25,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
   Map<String, dynamic>? _courier;
   bool _isLoading = true;
   Timer? _pollingTimer;
+  bool _ratingShown = false;
 
   @override
   void initState() {
@@ -34,13 +35,43 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
     });
     _fetchOrderData();
     
-    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (_currentStep < 6) {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (_currentStep < 5) {
         _fetchOrderData();
       } else {
         timer.cancel();
       }
     });
+  }
+
+  void _applyStatus(String status) {
+    final s = status.toLowerCase().trim();
+    int newStep = _currentStep;
+
+    if (s == 'created' || s == 'pending_payment') {
+      newStep = 0;
+    } else if (s == 'approved_by_admin') {
+      newStep = 1; // En preparación en restaurante
+    } else if (s == 'ready') {
+      newStep = 2; // Listo / Asignando repartidor
+    } else if (s == 'assigned' || s == 'at_restaurant') {
+      newStep = 3; // Repartidor en camino al restaurante
+    } else if (s == 'picked_up' || s == 'on_the_way') {
+      newStep = 4; // En camino a tu domicilio
+    } else if (s == 'delivered') {
+      newStep = 5; // Entregado
+    }
+
+    if (newStep != _currentStep) {
+      setState(() => _currentStep = newStep);
+      if (newStep == 5 && !_ratingShown) {
+        _ratingShown = true;
+        _pollingTimer?.cancel();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showDeliveryCompleteDialog(context);
+        });
+      }
+    }
   }
 
   Future<void> _fetchOrderData() async {
@@ -63,33 +94,10 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
               _courier = data['courier'];
             }
             _isLoading = false;
-            
-            final status = data['status']?.toString().toLowerCase() ?? '';
-            
-            switch (status) {
-              case 'pending_payment':
-                _currentStep = 0;
-                break;
-              case 'created':
-              case 'approved_by_admin':
-              case 'ready':
-                _currentStep = 1;
-                break;
-              case 'assigned':
-              case 'at_restaurant':
-                _currentStep = 2;
-                break;
-              case 'picked_up':
-              case 'on_the_way':
-                _currentStep = 3;
-                break;
-              case 'delivered':
-                _currentStep = 4;
-                _pollingTimer?.cancel();
-                _showDeliveryCompleteDialog(context);
-                break;
-            }
           });
+          
+          final status = data['status']?.toString() ?? '';
+          _applyStatus(status);
         }
       }
     } catch (e) {
@@ -102,15 +110,19 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Row(
           children: [
-            Icon(Icons.check_circle_rounded, color: Colors.green, size: 30),
+            Icon(Icons.check_circle_rounded, color: Colors.green, size: 28),
             SizedBox(width: 10),
-            Text('¡Pedido Entregado!'),
+            Text('¡Pedido Entregado!', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
           ],
         ),
-        content: const Text('Tu pedido ha sido entregado con éxito. ¡Esperamos que lo disfrutes! ¿Cómo estuvo la atención de tu repartidor?'),
+        content: const Text(
+          'Tu comida ha sido entregada. ¡Buen provecho!\n\n¿Deseas calificar la atención y rapidez de tu repartidor?',
+          style: TextStyle(fontSize: 14, height: 1.4),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
           TextButton(
             onPressed: () {
@@ -129,14 +141,15 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              backgroundColor: const Color(0xFFE60000),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(980)),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
             ),
             onPressed: () {
               Navigator.of(dialogContext, rootNavigator: true).pop();
               Navigator.of(context).popUntil((route) => route.isFirst);
             },
-            child: const Text('Volver al inicio', style: TextStyle(color: Colors.white)),
+            child: const Text('Inicio', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -151,20 +164,30 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
+    // Escuchar websocket para cambios instantáneos
+    final wsService = ref.watch(webSocketServiceProvider);
+    final lastStatus = wsService.lastStatusUpdate;
+    if (lastStatus != null && lastStatus['status'] != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _applyStatus(lastStatus['status']);
+      });
+    }
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: const Color(0xFFF5F5F7),
       appBar: AppBar(
-        title: const Text('Seguimiento de Pedido', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text(
+          'Rastreo del Pedido',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: Color(0xFF111111)),
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.support_agent_rounded, color: Colors.redAccent),
-            tooltip: 'Soporte y Ayuda',
+            icon: const Icon(Icons.support_agent_rounded, color: Color(0xFFE60000), size: 26),
+            tooltip: 'Soporte y Quejas',
             onPressed: () {
               showModalBottomSheet(
                 context: context,
@@ -177,91 +200,154 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
         ],
       ),
       body: _isLoading 
-        ? Center(child: CircularProgressIndicator(color: theme.colorScheme.primary))
+        ? const Center(child: CircularProgressIndicator(color: Color(0xFFE60000)))
         : SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // TARJETA DE CÓDIGO DE ENTREGA Y ORDEN
+                
+                // TARJETA DE CÓDIGO DE ENTREGA ESTILO IOS
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [theme.colorScheme.primary, Colors.blue.shade800],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
+                    color: const Color(0xFF111111),
+                    borderRadius: BorderRadius.circular(24),
                     boxShadow: [
-                      BoxShadow(color: theme.colorScheme.primary.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 5))
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 20,
+                        offset: const Offset(0, 6),
+                      )
                     ],
                   ),
                   child: Column(
                     children: [
-                      Text('Orden: ${widget.orderId}', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14)),
-                      const SizedBox(height: 8),
-                      const Text('Código de Entrega', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'ORDEN #${widget.orderId.substring(0, widget.orderId.length > 8 ? 8 : widget.orderId.length).toUpperCase()}',
+                            style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE60000),
+                              borderRadius: BorderRadius.circular(980),
+                            ),
+                            child: const Text('En Vivo', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      const Text(
+                        'Código de Entrega al Repartidor',
+                        style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         _deliveryCode,
-                        style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: 4),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 42,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 8,
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
-                        child: const Text('Muéstrale este código al repartidor', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Dile este número al domiciliario cuando llegue a tu casa',
+                        style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 11),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 ),
                 
-                const SizedBox(height: 32),
-                
-                const Text('Estado del pedido', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 24),
+                
+                const Text('Progreso de la Orden', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF111111))),
+                const SizedBox(height: 14),
 
-                // LÍNEA DE TIEMPO INTERACTIVA
+                // LÍNEA DE TIEMPO DEL NUEVO FLUJO
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.black.withOpacity(0.06)),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12, offset: const Offset(0, 4))],
                   ),
                   child: Column(
                     children: [
+                      // Paso 0: Verificación Pago
+                      _buildTrackingStep(
+                        context,
+                        stepIndex: 0,
+                        title: '1. Verificación del Pago',
+                        subtitle: _currentStep == 0 
+                            ? 'Esperando que la administración apruebe tu pago Nequi/Efectivo.'
+                            : 'Pago verificado correctamente.',
+                        icon: Icons.receipt_long_rounded,
+                        isLast: false,
+                      ),
+
+                      // Paso 1: En Preparación
                       _buildTrackingStep(
                         context,
                         stepIndex: 1,
-                        title: 'Pago Aprobado',
-                        subtitle: 'Tu orden fue validada. Buscando repartidor...',
-                        icon: Icons.check_circle_rounded,
+                        title: '2. En Preparación en Restaurante',
+                        subtitle: _currentStep == 1
+                            ? 'Pago aprobado. El restaurante está cocinando tus platos.'
+                            : 'Comida preparada por el negocio.',
+                        icon: Icons.soup_kitchen_rounded,
                         isLast: false,
                       ),
+
+                      // Paso 2: Listo / Asignando Repartidor
                       _buildTrackingStep(
                         context,
                         stepIndex: 2,
-                        title: 'En camino al restaurante',
-                        subtitle: 'El repartidor aceptó tu pedido y va hacia el restaurante.',
-                        icon: Icons.storefront_rounded,
+                        title: '3. Listo / Asignando Repartidor',
+                        subtitle: _currentStep == 2
+                            ? 'El restaurante finalizó la preparación. Buscando domiciliario en radar...'
+                            : 'Domiciliario encontrado.',
+                        icon: Icons.radar_rounded,
                         isLast: false,
                       ),
+
+                      // Paso 3: En camino al restaurante
                       _buildTrackingStep(
                         context,
                         stepIndex: 3,
-                        title: 'En camino a tu domicilio',
-                        subtitle: 'El repartidor ya ingresó el código del negocio y lleva tu comida.',
-                        icon: Icons.motorcycle_rounded,
+                        title: '4. En camino al restaurante',
+                        subtitle: _currentStep == 3
+                            ? 'El repartidor aceptó tu pedido y va hacia el negocio a recogerlo.'
+                            : 'Pedido retirado del restaurante.',
+                        icon: Icons.storefront_rounded,
                         isLast: false,
                       ),
+
+                      // Paso 4: En camino a tu domicilio
                       _buildTrackingStep(
                         context,
                         stepIndex: 4,
-                        title: 'Pedido Entregado',
-                        subtitle: '¡Disfruta tu pedido!',
+                        title: '5. En camino a tu domicilio',
+                        subtitle: _currentStep == 4
+                            ? 'El repartidor ya lleva tu comida en la moto hacia tu dirección.'
+                            : 'En entrega final.',
+                        icon: Icons.electric_moped_rounded,
+                        isLast: false,
+                      ),
+
+                      // Paso 5: Pedido Entregado
+                      _buildTrackingStep(
+                        context,
+                        stepIndex: 5,
+                        title: '6. Pedido Entregado',
+                        subtitle: '¡Disfruta tu comida! Califica a tu repartidor.',
                         icon: Icons.task_alt_rounded,
                         isLast: true,
                       ),
@@ -269,34 +355,43 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
-                // DATOS REALES DEL REPARTIDOR
-                if (_currentStep >= 2 && _courier != null) ...[
-                  const Text('Tu Repartidor', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
+                // DATOS DEL REPARTIDOR (VISIBLE TRAS ASIGNACIÓN)
+                if (_currentStep >= 3 && _courier != null) ...[
+                  const Text('Tu Repartidor Asignado', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF111111))),
+                  const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: Colors.black.withOpacity(0.06)),
                       boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
                     ),
                     child: Row(
                       children: [
                         CircleAvatar(
                           radius: 26,
-                          backgroundImage: _courier!['photo_url'] != null 
-                              ? NetworkImage('${ApiConfig.baseUrl}${_courier!['photo_url']}')
-                              : const NetworkImage('https://i.pravatar.cc/150?img=11'), 
+                          backgroundColor: const Color(0xFFE60000).withOpacity(0.1),
+                          child: const Icon(Icons.two_wheeler_rounded, color: Color(0xFFE60000), size: 28),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(_courier!['name'] ?? 'Repartidor', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                              Text('${_courier!['vehicle_model'] ?? 'Moto'} - ${_courier!['plate'] ?? ''}', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                              Text(_courier!['name'] ?? 'Repartidor Lorivery', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
+                                  Text(
+                                    ' ${_courier!['rating'] ?? '5.0'} • ${_courier!['vehicle_type'] ?? 'Motocicleta'}',
+                                    style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                         ),
@@ -311,39 +406,17 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                                   builder: (_) => OrderChatModal(
                                     orderId: widget.orderId,
                                     otherPartyName: _courier!['name'] ?? 'Repartidor',
-                                    otherPartyPhone: _courier!['phone_number'] ?? '3001234567',
+                                    otherPartyPhone: _courier!['phone_number'] ?? '3000000000',
                                     userRole: 'CLIENT',
                                   ),
                                 );
                               },
                               icon: Container(
                                 padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(color: theme.colorScheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-                                child: Icon(Icons.chat_bubble_rounded, color: theme.colorScheme.primary, size: 20),
+                                decoration: BoxDecoration(color: const Color(0xFFE60000).withOpacity(0.1), shape: BoxShape.circle),
+                                child: const Icon(Icons.chat_bubble_rounded, color: Color(0xFFE60000), size: 20),
                               ),
                               tooltip: 'Chat con Repartidor',
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                final phone = _courier!['phone_number'] ?? '3001234567';
-                                showDialog(
-                                  context: context,
-                                  builder: (ctx) => AlertDialog(
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                    title: const Text('Llamar al Repartidor'),
-                                    content: Text('Número: $phone'),
-                                    actions: [
-                                      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cerrar')),
-                                    ],
-                                  ),
-                                );
-                              },
-                              icon: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), shape: BoxShape.circle),
-                                child: const Icon(Icons.phone, color: Colors.green, size: 20),
-                              ),
-                              tooltip: 'Llamar',
                             ),
                           ],
                         ),
@@ -366,7 +439,6 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
     required IconData icon,
     required bool isLast,
   }) {
-    final theme = Theme.of(context);
     final isActive = _currentStep == stepIndex;
     final isCompleted = _currentStep > stepIndex;
     final isPending = _currentStep < stepIndex;
@@ -376,10 +448,10 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
     
     if (isCompleted) {
       iconColor = Colors.white;
-      circleColor = Colors.green;
+      circleColor = const Color(0xFF34C759); // Verde iOS
     } else if (isActive) {
       iconColor = Colors.white;
-      circleColor = theme.colorScheme.primary;
+      circleColor = const Color(0xFFE60000); // Rojo Lorivery
     }
 
     return IntrinsicHeight(
@@ -389,49 +461,49 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
           Column(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
                   color: circleColor,
                   shape: BoxShape.circle,
-                  border: isPending ? Border.all(color: Colors.grey.shade300, width: 2) : null,
+                  border: isPending ? Border.all(color: Colors.grey.shade300, width: 1.5) : null,
                 ),
                 child: Icon(
                   isCompleted ? Icons.check_rounded : icon,
                   color: isPending ? Colors.grey.shade400 : iconColor,
-                  size: 20,
+                  size: 18,
                 ),
               ),
               if (!isLast)
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: isCompleted ? Colors.green : Colors.grey.shade200,
+                    color: isCompleted ? const Color(0xFF34C759) : Colors.grey.shade200,
                   ),
                 ),
             ],
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 24.0),
+              padding: const EdgeInsets.only(bottom: 22.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
                     style: TextStyle(
-                      fontWeight: isActive || isCompleted ? FontWeight.bold : FontWeight.normal,
-                      fontSize: 16,
-                      color: isPending ? Colors.grey.shade500 : Colors.black87,
+                      fontWeight: isActive || isCompleted ? FontWeight.w800 : FontWeight.w500,
+                      fontSize: 15,
+                      color: isPending ? Colors.grey.shade400 : const Color(0xFF111111),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
-                    isActive ? 'Actualizando...' : subtitle,
+                    subtitle,
                     style: TextStyle(
-                      color: isActive ? theme.colorScheme.primary : Colors.grey.shade500,
-                      fontSize: 13,
+                      color: isActive ? const Color(0xFFE60000) : Colors.grey.shade600,
+                      fontSize: 12,
                       fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
