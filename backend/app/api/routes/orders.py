@@ -96,38 +96,82 @@ async def create_order_with_payment(
         "delivery_code": delivery_code
     }
 
+# Registro en memoria de pedidos rechazados o expirados por repartidor (para evitar bucle en el radar)
+rejected_orders_by_courier: set[tuple[str, str]] = set()
+
 @router.get("/available")
 async def get_available_orders(
+    radius_meters: float = 10000.0,
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(require_courier)
 ):
     """
-    Devuelve los pedidos aprobados/listos que aún no tienen repartidor asignado.
+    Devuelve los pedidos aprobados/listos que aún no tienen repartidor asignado,
+    filtrados geoespacialmente por proximidad usando PostGIS ST_DWithin y calculando distancia.
     """
+    courier_id = current_user["sub"]
     query = text("""
-        SELECT o.id, o.restaurant_id, o.delivery_address, o.delivery_fee, r.name as restaurant_name
+        SELECT 
+            o.id, 
+            o.restaurant_id, 
+            o.delivery_address, 
+            o.delivery_fee, 
+            r.name as restaurant_name,
+            CASE 
+                WHEN c.location IS NOT NULL AND o.restaurant_lat IS NOT NULL AND o.restaurant_lng IS NOT NULL
+                THEN ROUND((ST_Distance(c.location, ST_SetSRID(ST_MakePoint(o.restaurant_lng, o.restaurant_lat), 4326)::geography) / 1000.0)::numeric, 1)
+                ELSE 1.5
+            END as distance_km
         FROM orders o
         LEFT JOIN restaurants r ON o.restaurant_id = r.id
+        LEFT JOIN couriers c ON c.user_id = :courier_id
         WHERE o.status = 'READY'
           AND o.courier_id IS NULL
+          AND (
+            c.location IS NULL 
+            OR o.restaurant_lat IS NULL 
+            OR ST_DWithin(
+                c.location, 
+                ST_SetSRID(ST_MakePoint(o.restaurant_lng, o.restaurant_lat), 4326)::geography, 
+                :radius_meters
+            )
+          )
         ORDER BY o.id DESC
     """)
-    result = await db.execute(query)
+    result = await db.execute(query, {"courier_id": courier_id, "radius_meters": radius_meters})
     rows = result.fetchall()
 
     orders_list = []
     for row in rows:
-        o_id, r_id, del_addr, fee, r_name = row
+        o_id, r_id, del_addr, fee, r_name, dist_km = row
+        order_id_str = str(o_id)
+        
+        # Omitir pedidos que este repartidor ya haya rechazado
+        if (courier_id, order_id_str) in rejected_orders_by_courier:
+            continue
+
         orders_list.append({
-            "order_id": str(o_id),
+            "order_id": order_id_str,
             "restaurant_id": str(r_id) if r_id else None,
             "restaurant": r_name or "Restaurante Local",
             "destination": del_addr or "Cliente Lorica",
             "earnings": f"${(fee or 3000):,.0f} COP",
-            "distance": "En Lorica"
+            "distance": f"{dist_km or 1.5} km"
         })
 
     return {"status": "success", "orders": orders_list}
+
+@router.post("/{order_id}/reject")
+async def reject_order(
+    order_id: str,
+    current_user: dict = Depends(require_courier)
+):
+    """
+    Registra el rechazo o timeout de un pedido por parte del repartidor para removerlo del radar.
+    """
+    courier_id = current_user["sub"]
+    rejected_orders_by_courier.add((courier_id, str(order_id)))
+    return {"status": "success", "message": "Pedido rechazado y removido de tu radar."}
 
 @router.post("/{order_id}/accept")
 async def accept_order(
@@ -136,6 +180,7 @@ async def accept_order(
     current_user: dict = Depends(require_courier)
 ):
     courier_id = current_user["sub"]
+    rejected_orders_by_courier.discard((courier_id, str(order_id)))
 
     query = text("""
         UPDATE orders
@@ -355,7 +400,8 @@ async def get_order_tracking(
 ):
     query = text("""
         SELECT o.id, o.status, o.delivery_code, o.pickup_code, o.courier_id, o.delivery_address,
-               u.name as client_name, r.name as restaurant_name
+               u.name as client_name, r.name as restaurant_name,
+               o.delivery_lat, o.delivery_lng, o.restaurant_lat, o.restaurant_lng
         FROM orders o
         LEFT JOIN users u ON o.client_id = u.id
         LEFT JOIN restaurants r ON o.restaurant_id = r.id
@@ -367,7 +413,7 @@ async def get_order_tracking(
     if not order:
         raise HTTPException(status_code=404, detail="Orden no encontrada")
 
-    o_id, o_status, o_delivery_code, o_pickup_code, o_courier_id, o_delivery_address, c_name, r_name = order
+    o_id, o_status, o_delivery_code, o_pickup_code, o_courier_id, o_delivery_address, c_name, r_name, del_lat, del_lng, res_lat, res_lng = order
 
     response_data = {
         "order_id": str(o_id),
@@ -379,6 +425,10 @@ async def get_order_tracking(
         "restaurant_address": "Calle Principal #10-20, Lorica",
         "client_name": c_name or "Cliente",
         "client_phone": "3000000000",
+        "delivery_lat": del_lat,
+        "delivery_lng": del_lng,
+        "restaurant_lat": res_lat,
+        "restaurant_lng": res_lng,
         "courier": None
     }
 

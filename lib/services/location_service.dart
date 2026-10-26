@@ -11,31 +11,35 @@ class LocationService {
   LocationService(this.wsService);
 
   Future<void> requestPermissionsAndStart(String orderId, String courierId) async {
-    bool serviceEnabled;
-    LocationPermission permission;
+    try {
+      bool serviceEnabled;
+      LocationPermission permission;
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      debugPrint('Los servicios de ubicación están deshabilitados.');
-      return;
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        debugPrint('Los permisos de ubicación fueron denegados.');
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        debugPrint('Los servicios de ubicación están deshabilitados.');
         return;
       }
-    }
-    
-    if (permission == LocationPermission.deniedForever) {
-      debugPrint('Los permisos están denegados permanentemente.');
-      return;
-    }
 
-    // Si tenemos permiso, iniciamos la transmisión
-    _startBroadcasting(orderId, courierId);
+      permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          debugPrint('Los permisos de ubicación fueron denegados.');
+          return;
+        }
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        debugPrint('Los permisos están denegados permanentemente.');
+        return;
+      }
+
+      // Si tenemos permiso, iniciamos la transmisión
+      _startBroadcasting(orderId, courierId);
+    } catch (e) {
+      debugPrint('Geolocator no disponible en esta plataforma: $e');
+    }
   }
 
   void _startBroadcasting(String orderId, String courierId) {

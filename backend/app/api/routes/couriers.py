@@ -106,18 +106,24 @@ async def update_courier_location(
     current_user: dict = Depends(require_courier)
 ):
     """
-    Actualiza automáticamente la disponibilidad del repartidor al abrir el radar o activar el GPS.
+    Actualiza la ubicación GPS del repartidor con PostGIS (columna location geography)
+    y activa su disponibilidad en el radar.
     """
     courier_id = current_user["sub"]
     await db.execute(
         text("""
             UPDATE couriers
             SET is_available = TRUE,
-                is_approved = TRUE
+                is_approved = TRUE,
+                location = ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
             WHERE user_id = :cid
         """),
-        {"cid": courier_id}
+        {
+            "cid": courier_id,
+            "lng": data.longitude,
+            "lat": data.latitude,
+        }
     )
     await db.commit()
-    return {"status": "success", "message": "Ubicación y estado actualizados"}
+    return {"status": "success", "message": "Ubicación GPS guardada con PostGIS y estado actualizado"}
 

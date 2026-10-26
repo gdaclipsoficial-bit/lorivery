@@ -25,7 +25,7 @@ class LoricaClienteApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Lorica Delivery',
-      theme: AppTheme.lightTheme,
+      theme: AppTheme.clientTheme,
       home: const AuthScreen(),
       debugShowCheckedModeBanner: false,
     );

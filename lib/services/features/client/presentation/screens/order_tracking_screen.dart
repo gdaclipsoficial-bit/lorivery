@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:chatbox/theme/app_theme.dart';
 import 'package:chatbox/core/config/api_config.dart';
 import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 import 'package:chatbox/services/features/chat/order_chat_dialog.dart';
@@ -19,7 +23,23 @@ class OrderTrackingScreen extends ConsumerStatefulWidget {
   ConsumerState<OrderTrackingScreen> createState() => _OrderTrackingScreenState();
 }
 
-class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
+class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> with TickerProviderStateMixin {
+  final MapController _mapController = MapController();
+  late AnimationController _interpolController;
+
+  // Coordenadas para la interpolación matemática del repartidor
+  LatLng? _prevCourierPos;
+  LatLng? _targetCourierPos;
+  double _prevHeading = 0.0;
+  double _targetHeading = 0.0;
+
+  LatLng? _interpolatedCourierPos;
+  double _interpolatedHeading = 0.0;
+
+  LatLng? _restaurantPos;
+  LatLng? _deliveryPos;
+  Map<String, dynamic>? _lastProcessedGps;
+
   int _currentStep = 0; 
   String _deliveryCode = '...';
   Map<String, dynamic>? _courier;
@@ -30,6 +50,13 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
   @override
   void initState() {
     super.initState();
+    // Controlador de animación para interpolación fluida entre actualizaciones GPS
+    _interpolController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _interpolController.addListener(_onInterpolationTick);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(webSocketServiceProvider).connectToOrder(widget.orderId);
     });
@@ -42,6 +69,58 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
         timer.cancel();
       }
     });
+  }
+
+  void _onInterpolationTick() {
+    if (_prevCourierPos == null || _targetCourierPos == null) return;
+    
+    final t = Curves.easeInOut.transform(_interpolController.value);
+
+    // 1. Interpolación lineal (LERP) de coordenadas lat/lng
+    final lat = _prevCourierPos!.latitude + (_targetCourierPos!.latitude - _prevCourierPos!.latitude) * t;
+    final lng = _prevCourierPos!.longitude + (_targetCourierPos!.longitude - _prevCourierPos!.longitude) * t;
+
+    // 2. Interpolación angular (evita saltos al cruzar 0°/360°)
+    double diff = (_targetHeading - _prevHeading);
+    while (diff < -180) diff += 360;
+    while (diff > 180) diff -= 360;
+    final heading = _prevHeading + diff * t;
+
+    setState(() {
+      _interpolatedCourierPos = LatLng(lat, lng);
+      _interpolatedHeading = heading;
+    });
+  }
+
+  void _handleIncomingGps(Map<String, dynamic> gpsData) {
+    if (_lastProcessedGps == gpsData) return;
+    _lastProcessedGps = gpsData;
+
+    final lat = (gpsData['lat'] as num?)?.toDouble();
+    final lng = (gpsData['lng'] as num?)?.toDouble();
+    final heading = (gpsData['heading'] as num?)?.toDouble() ?? 0.0;
+
+    if (lat == null || lng == null) return;
+    final newPos = LatLng(lat, lng);
+
+    if (_interpolatedCourierPos == null) {
+      _prevCourierPos = newPos;
+      _targetCourierPos = newPos;
+      _interpolatedCourierPos = newPos;
+      _prevHeading = heading;
+      _targetHeading = heading;
+      _interpolatedHeading = heading;
+      setState(() {});
+      try {
+        _mapController.move(newPos, 15.5);
+      } catch (_) {}
+    } else {
+      _prevCourierPos = _interpolatedCourierPos;
+      _targetCourierPos = newPos;
+      _prevHeading = _interpolatedHeading;
+      _targetHeading = heading;
+      _interpolController.forward(from: 0.0);
+    }
   }
 
   void _applyStatus(String status) {
@@ -92,6 +171,18 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
             _deliveryCode = data['delivery_code']?.toString() ?? '...';
             if (data['courier'] != null) {
               _courier = data['courier'];
+            }
+            if (data['restaurant_lat'] != null && data['restaurant_lng'] != null) {
+              _restaurantPos = LatLng(
+                (data['restaurant_lat'] as num).toDouble(),
+                (data['restaurant_lng'] as num).toDouble(),
+              );
+            }
+            if (data['delivery_lat'] != null && data['delivery_lng'] != null) {
+              _deliveryPos = LatLng(
+                (data['delivery_lat'] as num).toDouble(),
+                (data['delivery_lng'] as num).toDouble(),
+              );
             }
             _isLoading = false;
           });
@@ -158,14 +249,25 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
 
   @override
   void dispose() {
+    _interpolController.dispose();
+    _mapController.dispose();
     _pollingTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Escuchar websocket para cambios instantáneos
     final wsService = ref.watch(webSocketServiceProvider);
+
+    // Consumir en tiempo real las actualizaciones GPS del WebSocket para interpolación
+    final lastGps = wsService.lastLocationData;
+    if (lastGps != null && (lastGps['type'] == 'GPS_UPDATE' || lastGps['lat'] != null)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleIncomingGps(lastGps);
+      });
+    }
+
+    // Escuchar websocket para cambios instantáneos de estado
     final lastStatus = wsService.lastStatusUpdate;
     if (lastStatus != null && lastStatus['status'] != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -201,233 +303,350 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
       ),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator(color: Color(0xFFE60000)))
-        : SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                
-                // TARJETA DE CÓDIGO DE ENTREGA ESTILO IOS
-                Container(
-                  padding: const EdgeInsets.all(22),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF111111),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.12),
-                        blurRadius: 20,
-                        offset: const Offset(0, 6),
-                      )
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'ORDEN #${widget.orderId.substring(0, widget.orderId.length > 8 ? 8 : widget.orderId.length).toUpperCase()}',
-                            style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE60000),
-                              borderRadius: BorderRadius.circular(980),
-                            ),
-                            child: const Text('En Vivo', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Código de Entrega al Repartidor',
-                        style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _deliveryCode,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 42,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 8,
+        : Column(
+            children: [
+              // 1. MAPA DE TRACKING EN VIVO ESTILO RAPPI (Interpolación fluida de moto)
+              Expanded(
+                flex: 4,
+                child: Stack(
+                  children: [
+                    FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        initialCenter: _interpolatedCourierPos ?? _restaurantPos ?? _deliveryPos ?? const LatLng(9.2389, -75.8139),
+                        initialZoom: 15.0,
+                        interactionOptions: const InteractionOptions(
+                          flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Dile este número al domiciliario cuando llegue a tu casa',
-                        style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 11),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                const Text('Progreso de la Orden', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF111111))),
-                const SizedBox(height: 14),
-
-                // LÍNEA DE TIEMPO DEL NUEVO FLUJO
-                Container(
-                  padding: const EdgeInsets.all(22),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.black.withOpacity(0.06)),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12, offset: const Offset(0, 4))],
-                  ),
-                  child: Column(
-                    children: [
-                      // Paso 0: Verificación Pago
-                      _buildTrackingStep(
-                        context,
-                        stepIndex: 0,
-                        title: '1. Verificación del Pago',
-                        subtitle: _currentStep == 0 
-                            ? 'Esperando que la administración apruebe tu pago Nequi/Efectivo.'
-                            : 'Pago verificado correctamente.',
-                        icon: Icons.receipt_long_rounded,
-                        isLast: false,
-                      ),
-
-                      // Paso 1: En Preparación
-                      _buildTrackingStep(
-                        context,
-                        stepIndex: 1,
-                        title: '2. En Preparación en Restaurante',
-                        subtitle: _currentStep == 1
-                            ? 'Pago aprobado. El restaurante está cocinando tus platos.'
-                            : 'Comida preparada por el negocio.',
-                        icon: Icons.soup_kitchen_rounded,
-                        isLast: false,
-                      ),
-
-                      // Paso 2: Listo / Asignando Repartidor
-                      _buildTrackingStep(
-                        context,
-                        stepIndex: 2,
-                        title: '3. Listo / Asignando Repartidor',
-                        subtitle: _currentStep == 2
-                            ? 'El restaurante finalizó la preparación. Buscando domiciliario en radar...'
-                            : 'Domiciliario encontrado.',
-                        icon: Icons.radar_rounded,
-                        isLast: false,
-                      ),
-
-                      // Paso 3: En camino al restaurante
-                      _buildTrackingStep(
-                        context,
-                        stepIndex: 3,
-                        title: '4. En camino al restaurante',
-                        subtitle: _currentStep == 3
-                            ? 'El repartidor aceptó tu pedido y va hacia el negocio a recogerlo.'
-                            : 'Pedido retirado del restaurante.',
-                        icon: Icons.storefront_rounded,
-                        isLast: false,
-                      ),
-
-                      // Paso 4: En camino a tu domicilio
-                      _buildTrackingStep(
-                        context,
-                        stepIndex: 4,
-                        title: '5. En camino a tu domicilio',
-                        subtitle: _currentStep == 4
-                            ? 'El repartidor ya lleva tu comida en la moto hacia tu dirección.'
-                            : 'En entrega final.',
-                        icon: Icons.electric_moped_rounded,
-                        isLast: false,
-                      ),
-
-                      // Paso 5: Pedido Entregado
-                      _buildTrackingStep(
-                        context,
-                        stepIndex: 5,
-                        title: '6. Pedido Entregado',
-                        subtitle: '¡Disfruta tu comida! Califica a tu repartidor.',
-                        icon: Icons.task_alt_rounded,
-                        isLast: true,
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // DATOS DEL REPARTIDOR (VISIBLE TRAS ASIGNACIÓN)
-                if (_currentStep >= 3 && _courier != null) ...[
-                  const Text('Tu Repartidor Asignado', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF111111))),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: Colors.black.withOpacity(0.06)),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
-                    ),
-                    child: Row(
                       children: [
-                        CircleAvatar(
-                          radius: 26,
-                          backgroundColor: const Color(0xFFE60000).withOpacity(0.1),
-                          child: const Icon(Icons.two_wheeler_rounded, color: Color(0xFFE60000), size: 28),
+                        TileLayer(
+                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.example.chatbox',
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        // Línea de ruta estimada
+                        if (_restaurantPos != null && _deliveryPos != null)
+                          PolylineLayer(
+                            polylines: [
+                              Polyline(
+                                points: [
+                                  if (_interpolatedCourierPos != null) _interpolatedCourierPos!,
+                                  if (_currentStep < 4 && _restaurantPos != null) _restaurantPos!,
+                                  _deliveryPos!,
+                                ],
+                                strokeWidth: 3.5,
+                                color: AppColors.loriveryRed.withValues(alpha: 0.6),
+                                isDotted: true,
+                              ),
+                            ],
+                          ),
+                        MarkerLayer(
+                          markers: [
+                            // Marcador Restaurante
+                            if (_restaurantPos != null)
+                              Marker(
+                                point: _restaurantPos!,
+                                width: 44,
+                                height: 44,
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    color: Colors.orange,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
+                                  ),
+                                  child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 24),
+                                ),
+                              ),
+                            // Marcador Destino / Casa Cliente
+                            if (_deliveryPos != null)
+                              Marker(
+                                point: _deliveryPos!,
+                                width: 44,
+                                height: 44,
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF34C759),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
+                                  ),
+                                  child: const Icon(Icons.home_rounded, color: Colors.white, size: 24),
+                                ),
+                              ),
+                            // Marcador Repartidor (Moto con movimiento interpolado LERP y rotación)
+                            if (_interpolatedCourierPos != null)
+                              Marker(
+                                point: _interpolatedCourierPos!,
+                                width: 56,
+                                height: 56,
+                                child: Transform.rotate(
+                                  angle: (_interpolatedHeading * (math.pi / 180.0)),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE60000),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 2.5),
+                                      boxShadow: const [
+                                        BoxShadow(color: Colors.black38, blurRadius: 10, offset: Offset(0, 3))
+                                      ],
+                                    ),
+                                    child: const Icon(Icons.two_wheeler_rounded, color: Colors.white, size: 30),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    // Botón flotante para recentrar en el repartidor o entrega
+                    Positioned(
+                      bottom: 12,
+                      right: 12,
+                      child: FloatingActionButton.small(
+                        heroTag: 'tracking_center_fab',
+                        backgroundColor: Colors.white,
+                        onPressed: () {
+                          final center = _interpolatedCourierPos ?? _deliveryPos ?? _restaurantPos;
+                          if (center != null) {
+                            _mapController.move(center, 16.0);
+                          }
+                        },
+                        child: const Icon(Icons.my_location, color: Colors.black87),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 2. PANEL DE DETALLES Y PROGRESO DEL PEDIDO
+              Expanded(
+                flex: 6,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // TARJETA DE CÓDIGO DE ENTREGA ESTILO IOS
+                      Container(
+                        padding: const EdgeInsets.all(22),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF111111),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.12),
+                              blurRadius: 20,
+                              offset: const Offset(0, 6),
+                            )
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'ORDEN #${widget.orderId.substring(0, widget.orderId.length > 8 ? 8 : widget.orderId.length).toUpperCase()}',
+                                  style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE60000),
+                                    borderRadius: BorderRadius.circular(980),
+                                  ),
+                                  child: const Text('En Vivo', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            const Text(
+                              'Código de Entrega al Repartidor',
+                              style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _deliveryCode,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 42,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 8,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              'Dile este número al domiciliario cuando llegue a tu casa',
+                              style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 11),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+
+                      // DATOS DEL REPARTIDOR (VISIBLE TRAS ASIGNACIÓN)
+                      if (_currentStep >= 3 && _courier != null) ...[
+                        const Text('Tu Repartidor Asignado', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF111111))),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(color: Colors.black.withOpacity(0.06)),
+                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+                          ),
+                          child: Row(
                             children: [
-                              Text(_courier!['name'] ?? 'Repartidor Lorivery', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-                              const SizedBox(height: 2),
+                              CircleAvatar(
+                                radius: 26,
+                                backgroundColor: const Color(0xFFE60000).withOpacity(0.1),
+                                child: const Icon(Icons.two_wheeler_rounded, color: Color(0xFFE60000), size: 28),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(_courier!['name'] ?? 'Repartidor Lorivery', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                                    const SizedBox(height: 2),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
+                                        Text(
+                                          ' ${_courier!['rating'] ?? '5.0'} • ${_courier!['vehicle_type'] ?? 'Motocicleta'}',
+                                          style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
                               Row(
                                 children: [
-                                  const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
-                                  Text(
-                                    ' ${_courier!['rating'] ?? '5.0'} • ${_courier!['vehicle_type'] ?? 'Motocicleta'}',
-                                    style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600),
+                                  IconButton(
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (_) => OrderChatModal(
+                                          orderId: widget.orderId,
+                                          otherPartyName: _courier!['name'] ?? 'Repartidor',
+                                          otherPartyPhone: _courier!['phone_number'] ?? '3000000000',
+                                          userRole: 'CLIENT',
+                                        ),
+                                      );
+                                    },
+                                    icon: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(color: const Color(0xFFE60000).withOpacity(0.1), shape: BoxShape.circle),
+                                      child: const Icon(Icons.chat_bubble_rounded, color: Color(0xFFE60000), size: 20),
+                                    ),
+                                    tooltip: 'Chat con Repartidor',
                                   ),
                                 ],
                               ),
                             ],
                           ),
                         ),
-                        Row(
+                        const SizedBox(height: 24),
+                      ],
+                      
+                      const Text('Progreso de la Orden', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF111111))),
+                      const SizedBox(height: 14),
+
+                      // LÍNEA DE TIEMPO DEL FLUJO
+                      Container(
+                        padding: const EdgeInsets.all(22),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: Colors.black.withOpacity(0.06)),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12, offset: const Offset(0, 4))],
+                        ),
+                        child: Column(
                           children: [
-                            IconButton(
-                              onPressed: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  builder: (_) => OrderChatModal(
-                                    orderId: widget.orderId,
-                                    otherPartyName: _courier!['name'] ?? 'Repartidor',
-                                    otherPartyPhone: _courier!['phone_number'] ?? '3000000000',
-                                    userRole: 'CLIENT',
-                                  ),
-                                );
-                              },
-                              icon: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(color: const Color(0xFFE60000).withOpacity(0.1), shape: BoxShape.circle),
-                                child: const Icon(Icons.chat_bubble_rounded, color: Color(0xFFE60000), size: 20),
-                              ),
-                              tooltip: 'Chat con Repartidor',
+                            // Paso 0: Verificación Pago
+                            _buildTrackingStep(
+                              context,
+                              stepIndex: 0,
+                              title: '1. Verificación del Pago',
+                              subtitle: _currentStep == 0 
+                                  ? 'Esperando que la administración apruebe tu pago Nequi/Efectivo.'
+                                  : 'Pago verificado correctamente.',
+                              icon: Icons.receipt_long_rounded,
+                              isLast: false,
+                            ),
+
+                            // Paso 1: En Preparación
+                            _buildTrackingStep(
+                              context,
+                              stepIndex: 1,
+                              title: '2. En Preparación en Restaurante',
+                              subtitle: _currentStep == 1
+                                  ? 'Pago aprobado. El restaurante está cocinando tus platos.'
+                                  : 'Comida preparada por el negocio.',
+                              icon: Icons.soup_kitchen_rounded,
+                              isLast: false,
+                            ),
+
+                            // Paso 2: Listo / Asignando Repartidor
+                            _buildTrackingStep(
+                              context,
+                              stepIndex: 2,
+                              title: '3. Listo / Asignando Repartidor',
+                              subtitle: _currentStep == 2
+                                  ? 'El restaurante finalizó la preparación. Buscando domiciliario en radar...'
+                                  : 'Domiciliario encontrado.',
+                              icon: Icons.radar_rounded,
+                              isLast: false,
+                            ),
+
+                            // Paso 3: En camino al restaurante
+                            _buildTrackingStep(
+                              context,
+                              stepIndex: 3,
+                              title: '4. En camino al restaurante',
+                              subtitle: _currentStep == 3
+                                  ? 'El repartidor aceptó tu pedido y va hacia el negocio a recogerlo.'
+                                  : 'Pedido retirado del restaurante.',
+                              icon: Icons.storefront_rounded,
+                              isLast: false,
+                            ),
+
+                            // Paso 4: En camino a tu domicilio
+                            _buildTrackingStep(
+                              context,
+                              stepIndex: 4,
+                              title: '5. En camino a tu domicilio',
+                              subtitle: _currentStep == 4
+                                  ? 'El repartidor ya lleva tu comida en la moto hacia tu dirección.'
+                                  : 'En entrega final.',
+                              icon: Icons.electric_moped_rounded,
+                              isLast: false,
+                            ),
+
+                            // Paso 5: Pedido Entregado
+                            _buildTrackingStep(
+                              context,
+                              stepIndex: 5,
+                              title: '6. Pedido Entregado',
+                              subtitle: '¡Disfruta tu comida! Califica a tu repartidor.',
+                              icon: Icons.task_alt_rounded,
+                              isLast: true,
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
-                ]
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
-      ),
     );
   }
 

@@ -25,14 +25,7 @@ class LoricaRepartidorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Lorica Repartidor',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
-          brightness: Brightness.light,
-        ),
-        fontFamily: 'Poppins',
-        useMaterial3: true,
-      ),
+      theme: AppTheme.courierTheme,
       home: const AuthScreen(),
       debugShowCheckedModeBanner: false,
     );
