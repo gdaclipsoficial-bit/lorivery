@@ -7,6 +7,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:chatbox/core/config/api_config.dart';
 import 'package:chatbox/services/features/restaurants/providers/restaurant_provider.dart';
 import 'package:chatbox/services/features/client/presentation/screens/order_tracking_screen.dart';
@@ -19,7 +20,7 @@ final isVerifyingProvider = StateProvider.autoDispose<bool>((ref) => false);
 final selectedBankProvider = StateProvider.autoDispose<String>((ref) => 'Nequi');
 final deliveryAddressProvider = StateProvider.autoDispose<String>((ref) => '');
 
-class CheckoutScreen extends ConsumerWidget {
+class CheckoutScreen extends ConsumerStatefulWidget {
   final Restaurant restaurant;
   final double totalAmount;
   final int itemCount;
@@ -30,6 +31,41 @@ class CheckoutScreen extends ConsumerWidget {
     required this.totalAmount,
     required this.itemCount,
   }) : super(key: key);
+
+  @override
+  ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
+}
+
+class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
+  late final TextEditingController _addressCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _addressCtrl = TextEditingController();
+    _loadSavedAddress();
+  }
+
+  Future<void> _loadSavedAddress() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString('user_delivery_address');
+      if (saved != null && saved.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _addressCtrl.text = saved;
+          });
+          ref.read(deliveryAddressProvider.notifier).state = saved;
+        }
+      }
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _addressCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage(WidgetRef ref) async {
     final picker = ImagePicker();
@@ -115,14 +151,14 @@ class CheckoutScreen extends ConsumerWidget {
       final uri = Uri.parse('${ApiConfig.baseUrl}/orders/');
       
       const double deliveryFee = 3000.0; // Domicilio urbano Lorica ($3.000 COP)
-      final double grandTotal = totalAmount + deliveryFee;
+      final double grandTotal = widget.totalAmount + deliveryFee;
 
       final request = http.MultipartRequest('POST', uri)
         ..headers['Authorization'] = 'Bearer $token'
-        ..fields['restaurant_id'] = restaurant.id.toString()
+        ..fields['restaurant_id'] = widget.restaurant.id.toString()
         ..fields['total_amount'] = grandTotal.toString()
         ..fields['delivery_fee'] = deliveryFee.toString()
-        ..fields['items_count'] = itemCount.toString()
+        ..fields['items_count'] = widget.itemCount.toString()
         ..fields['bank'] = bank
         ..fields['delivery_address'] = address
         ..fields['delivery_lat'] = lat.toString()
@@ -247,7 +283,7 @@ class CheckoutScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final image = ref.watch(receiptImageProvider);
     final isVerifying = ref.watch(isVerifyingProvider);
     final selectedBank = ref.watch(selectedBankProvider);
@@ -332,6 +368,7 @@ class CheckoutScreen extends ConsumerWidget {
                             border: Border.all(color: AppColors.clientBorder, width: 1),
                           ),
                           child: TextField(
+                            controller: _addressCtrl,
                             onChanged: (val) => ref.read(deliveryAddressProvider.notifier).state = val,
                             decoration: const InputDecoration(
                               hintText: 'Barrio, casa o referencia (Opcional)',
@@ -367,7 +404,7 @@ class CheckoutScreen extends ConsumerWidget {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                restaurant.name,
+                                widget.restaurant.name,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w900,
@@ -384,11 +421,11 @@ class CheckoutScreen extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Subtotal ($itemCount ${itemCount == 1 ? 'item' : 'items'}):',
+                              'Subtotal (${widget.itemCount} ${widget.itemCount == 1 ? 'item' : 'items'}):',
                               style: const TextStyle(color: AppColors.clientTextSecondary, fontSize: 14),
                             ),
                             Text(
-                              _formatPrice(totalAmount),
+                              _formatPrice(widget.totalAmount),
                               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                             ),
                           ],
@@ -429,7 +466,7 @@ class CheckoutScreen extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              _formatPrice(totalAmount + 3000),
+                              _formatPrice(widget.totalAmount + 3000),
                               style: const TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w900,
