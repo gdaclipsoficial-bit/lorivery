@@ -55,3 +55,4 @@ backend/uploads/*
 !backend/uploads/.gitkeep
 !backend/uploads/apks/
 !backend/uploads/apks/*
+*.jks
