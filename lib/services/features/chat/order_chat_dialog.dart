@@ -26,8 +26,10 @@ class OrderChatModal extends ConsumerStatefulWidget {
 
 class _OrderChatModalState extends ConsumerState<OrderChatModal> {
   final TextEditingController _msgCtrl = TextEditingController();
+  final ScrollController _scrollCtrl = ScrollController();
   final List<Map<String, dynamic>> _messages = [];
   bool _isSending = false;
+  bool _isLoadingHistory = true;
 
   final List<String> _quickRepliesClient = [
     '¿En cuánto tiempo llegas?',
@@ -46,22 +48,57 @@ class _OrderChatModalState extends ConsumerState<OrderChatModal> {
   @override
   void initState() {
     super.initState();
-    // Conectar al WebSocket del pedido específico para recibir mensajes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(webSocketServiceProvider).connectToOrder(widget.orderId);
+      _loadChatHistory();
     });
-    // Mensaje de bienvenida inicial
-    _messages.add({
-      'sender_role': widget.userRole == 'CLIENT' ? 'COURIER' : 'CLIENT',
-      'sender_name': widget.otherPartyName,
-      'message': '¡Hola! Estoy atento a tu pedido. Escribe aquí cualquier indicación.',
-      'time': 'Ahora',
+  }
+
+  Future<void> _loadChatHistory() async {
+    try {
+      final token = ref.read(authProvider).token;
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/orders/${widget.orderId}/chat'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200 && mounted) {
+        final data = jsonDecode(response.body);
+        final List<dynamic> msgs = data['messages'] ?? [];
+        setState(() {
+          _messages.clear();
+          for (final m in msgs) {
+            _messages.add({
+              'sender_role': m['sender_role'],
+              'sender_name': m['sender_name'],
+              'message': m['message'],
+              'time': m['time'],
+            });
+          }
+          _isLoadingHistory = false;
+        });
+        _scrollToBottom();
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingHistory = false);
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollCtrl.hasClients) {
+        _scrollCtrl.animateTo(
+          _scrollCtrl.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
   @override
   void dispose() {
     _msgCtrl.dispose();
+    _scrollCtrl.dispose();
     super.dispose();
   }
 
@@ -76,10 +113,11 @@ class _OrderChatModalState extends ConsumerState<OrderChatModal> {
         'sender_role': widget.userRole,
         'sender_name': 'Tú',
         'message': msgText,
-        'time': 'Ahora',
+        'time': TimeOfDay.now().format(context),
       });
       _isSending = true;
     });
+    _scrollToBottom();
 
     try {
       final token = ref.read(authProvider).token;
@@ -155,9 +193,10 @@ class _OrderChatModalState extends ConsumerState<OrderChatModal> {
               'sender_role': chat['sender_role'],
               'sender_name': chat['sender_name'] ?? widget.otherPartyName,
               'message': chat['message'],
-              'time': 'Ahora',
+              'time': chat['timestamp'] ?? 'Ahora',
             });
           });
+          _scrollToBottom();
           // Limpiar para no volver a procesar el mismo mensaje
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ref.read(webSocketServiceProvider).clearLastChatMessage();
@@ -229,7 +268,23 @@ class _OrderChatModalState extends ConsumerState<OrderChatModal> {
 
           // Burbujas de mensajes
           Expanded(
-            child: ListView.builder(
+            child: _isLoadingHistory
+              ? const Center(child: CircularProgressIndicator())
+              : _messages.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey.shade300),
+                        const SizedBox(height: 8),
+                        Text('Sin mensajes aún.\nEscribe el primero 👋',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey.shade400, fontSize: 14)),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+              controller: _scrollCtrl,
               padding: const EdgeInsets.all(16),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
@@ -280,8 +335,6 @@ class _OrderChatModalState extends ConsumerState<OrderChatModal> {
               },
             ),
           ),
-
-          // Respuestas Rápidas
           SizedBox(
             height: 40,
             child: ListView.builder(

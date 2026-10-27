@@ -16,6 +16,7 @@ import 'package:chatbox/services/features/courier/presentation/screens/courier_h
 import 'package:chatbox/services/features/support/support_modal.dart';
 import 'package:chatbox/core/widgets/app_notification_banner.dart';
 import 'package:flutter/services.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class RadarScreen extends ConsumerStatefulWidget {
   const RadarScreen({Key? key}) : super(key: key);
@@ -27,6 +28,7 @@ class RadarScreen extends ConsumerStatefulWidget {
 class _RadarScreenState extends ConsumerState<RadarScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final MapController _mapController = MapController(); 
+  final AudioPlayer _audioPlayer = AudioPlayer();
   
   LatLng? _currentLocation;
   StreamSubscription<Position>? _positionStream;
@@ -151,6 +153,7 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
     _ordersPollTimer?.cancel();
     _positionStream?.cancel();
     _mapController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -792,7 +795,7 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
 
     // Alerta auditiva/háptica y Notificación flotante de nuevo pedido
     HapticFeedback.vibrate();
-    SystemSound.play(SystemSoundType.click);
+    _audioPlayer.play(AssetSource('sounds/new_order.wav'));
 
     AppNotificationBanner.show(
       context,

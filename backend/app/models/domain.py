@@ -84,3 +84,13 @@ class SupportTicket(Base):
     description = Column(String, nullable=False)
     status = Column(String, default="OPEN") # OPEN, IN_PROGRESS, RESOLVED
     created_at = Column(String, nullable=True)
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    order_id = Column(String, ForeignKey("orders.id"), nullable=False)
+    sender_id = Column(String, ForeignKey("users.id"), nullable=False)
+    sender_role = Column(String, nullable=False)  # CLIENT o COURIER
+    sender_name = Column(String, nullable=False)
+    message = Column(String, nullable=False)
+    created_at = Column(String, nullable=True)

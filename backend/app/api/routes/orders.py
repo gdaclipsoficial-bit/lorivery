@@ -8,8 +8,9 @@ import uuid
 import math
 import random
 
+from datetime import datetime, timezone
 from app.core.database import get_db
-from app.models.domain import Order
+from app.models.domain import Order, ChatMessage as ChatMessageModel
 from app.core.security import get_current_user, require_courier
 from app.websockets.connection_manager import manager
 
@@ -367,19 +368,34 @@ async def get_courier_orders_history(
 
     return {"status": "success", "orders": history}
 
-class ChatMessage(BaseModel):
+class ChatMessageRequest(BaseModel):
     message: str
     sender_role: str # CLIENT o COURIER
 
 @router.post("/{order_id}/chat")
 async def send_order_chat_message(
     order_id: str,
-    payload: ChatMessage,
+    payload: ChatMessageRequest,
+    db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     """
-    Retransmite un mensaje de chat entre el cliente y el repartidor a través del WebSocket de la orden.
+    Persiste y retransmite un mensaje de chat entre el cliente y el repartidor vía WebSocket.
     """
+    now = datetime.now(timezone.utc).strftime("%H:%M")
+    
+    # Persistir en base de datos
+    chat_msg = ChatMessageModel(
+        order_id=order_id,
+        sender_id=current_user["sub"],
+        sender_role=payload.sender_role,
+        sender_name=current_user.get("name", "Usuario"),
+        message=payload.message,
+        created_at=now
+    )
+    db.add(chat_msg)
+    await db.commit()
+
     msg_data = {
         "type": "CHAT_MESSAGE",
         "order_id": order_id,
@@ -387,10 +403,39 @@ async def send_order_chat_message(
         "sender_name": current_user.get("name", "Usuario"),
         "sender_role": payload.sender_role,
         "message": payload.message,
-        "timestamp": "Ahora"
+        "timestamp": now
     }
     await manager.broadcast_to_room(room_id=order_id, message=msg_data)
     return {"status": "success", "data": msg_data}
+
+@router.get("/{order_id}/chat")
+async def get_order_chat_history(
+    order_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Devuelve el historial de mensajes de chat de una orden.
+    """
+    from sqlalchemy import select as sa_select
+    result = await db.execute(
+        sa_select(ChatMessageModel)
+        .where(ChatMessageModel.order_id == order_id)
+        .order_by(ChatMessageModel.id)
+    )
+    messages = result.scalars().all()
+    return {
+        "status": "success",
+        "messages": [
+            {
+                "sender_role": m.sender_role,
+                "sender_name": m.sender_name,
+                "message": m.message,
+                "time": m.created_at or "—"
+            }
+            for m in messages
+        ]
+    }
 
 @router.get("/{order_id}")
 async def get_order_tracking(

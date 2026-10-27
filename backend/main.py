@@ -44,6 +44,18 @@ async def on_startup():
             await conn.execute(text('ALTER TABLE couriers ADD COLUMN IF NOT EXISTS phone_number VARCHAR;'))
             await conn.execute(text('ALTER TABLE couriers ADD COLUMN IF NOT EXISTS national_id VARCHAR;'))
             await conn.execute(text('ALTER TABLE couriers ADD COLUMN IF NOT EXISTS rating FLOAT DEFAULT 5.0;'))
+            # Tabla de mensajes de chat persistidos
+            await conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS chat_messages (
+                    id VARCHAR PRIMARY KEY,
+                    order_id VARCHAR,
+                    sender_id VARCHAR,
+                    sender_role VARCHAR NOT NULL,
+                    sender_name VARCHAR NOT NULL,
+                    message VARCHAR NOT NULL,
+                    created_at VARCHAR
+                )
+            """))
         except Exception as ex:
             print(f"[STARTUP MIGRATION WARNING] {ex}")
 
