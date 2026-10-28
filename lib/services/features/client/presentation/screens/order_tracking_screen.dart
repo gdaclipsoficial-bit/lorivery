@@ -213,52 +213,14 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> with 
   }
 
   void _showDeliveryCompleteDialog(BuildContext context) {
-    showDialog(
+    // Abrir automáticamente el modal de calificación del repartidor
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle_rounded, color: Colors.green, size: 28),
-            SizedBox(width: 10),
-            Text('¡Pedido Entregado!', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
-          ],
-        ),
-        content: const Text(
-          'Tu comida ha sido entregada. ¡Buen provecho!\n\n¿Deseas calificar la atención y rapidez de tu repartidor?',
-          style: TextStyle(fontSize: 14, height: 1.4),
-        ),
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext, rootNavigator: true).pop();
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (_) => CourierRatingModal(
-                  orderId: widget.orderId,
-                  courierName: _courier?['name'] ?? 'Repartidor',
-                ),
-              );
-            },
-            child: const Text('⭐ Calificar Repartidor', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE60000),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(980)),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-            ),
-            onPressed: () {
-              Navigator.of(dialogContext, rootNavigator: true).pop();
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-            child: const Text('Inicio', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CourierRatingModal(
+        orderId: widget.orderId,
+        courierName: _courier?['name'] ?? 'Repartidor',
       ),
     );
   }
