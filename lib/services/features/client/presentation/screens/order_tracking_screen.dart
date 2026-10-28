@@ -13,6 +13,8 @@ import 'package:chatbox/services/features/chat/order_chat_dialog.dart';
 import 'package:chatbox/services/websocket_service.dart';
 import 'package:chatbox/services/features/support/support_modal.dart';
 import 'package:chatbox/services/features/rating/courier_rating_modal.dart';
+import 'package:chatbox/services/background_service.dart';
+import 'package:chatbox/services/notification_service.dart';
 
 class OrderTrackingScreen extends ConsumerStatefulWidget {
   final String orderId;
@@ -67,6 +69,14 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> with 
         _fetchOrderData();
       } else {
         timer.cancel();
+      }
+    });
+
+    // Arrancar monitor en background para notificaciones cuando la app está minimizada
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final token = ref.read(authProvider).token;
+      if (token != null) {
+        await startOrderMonitor(token: token, orderId: widget.orderId);
       }
     });
   }
@@ -143,9 +153,15 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> with 
 
     if (newStep != _currentStep) {
       setState(() => _currentStep = newStep);
+      // Notificación local inmediata (útil si la app está en foreground o minimizada)
+      NotificationService().showOrderStatusNotification(
+        status: status,
+        orderId: widget.orderId,
+      );
       if (newStep == 5 && !_ratingShown) {
         _ratingShown = true;
         _pollingTimer?.cancel();
+        stopOrderMonitor(); // Detener background service
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _showDeliveryCompleteDialog(context);
         });
@@ -272,6 +288,21 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> with 
     if (lastStatus != null && lastStatus['status'] != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _applyStatus(lastStatus['status']);
+      });
+    }
+
+    // Escuchar mensajes de chat nuevos en tiempo real → notificación local
+    final lastChat = wsService.lastChatMessage;
+    if (lastChat != null &&
+        lastChat['type'] == 'CHAT_MESSAGE' &&
+        lastChat['sender_role'] == 'COURIER') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        NotificationService().showChatNotification(
+          senderName: lastChat['sender_name'] ?? 'Repartidor',
+          message: lastChat['message'] ?? '',
+          orderId: widget.orderId,
+        );
+        ref.read(webSocketServiceProvider).clearLastChatMessage();
       });
     }
 

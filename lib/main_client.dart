@@ -3,10 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chatbox/theme/app_theme.dart';
 import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 import 'package:chatbox/core/config/api_config.dart';
+import 'package:chatbox/services/notification_service.dart';
+import 'package:chatbox/services/background_service.dart';
+
+import 'package:chatbox/services/features/splash/splash_screen.dart';
 
 /// Entry point para la App del CLIENTE
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Inicializar notificaciones y servicio de background
+  await NotificationService().initialize();
+  await initBackgroundService();
   print('🛒 LORICA CLIENTE - URL: ${ApiConfig.baseUrl}');
   runApp(
     ProviderScope(
@@ -26,7 +33,7 @@ class LoricaClienteApp extends StatelessWidget {
     return MaterialApp(
       title: 'Lorica Delivery',
       theme: AppTheme.clientTheme,
-      home: const AuthScreen(),
+      home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

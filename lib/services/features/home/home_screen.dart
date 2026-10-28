@@ -400,6 +400,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             icon: const Icon(Icons.support_agent_rounded, color: darkText, size: 24),
                             tooltip: 'Soporte',
                           ),
+                          const SizedBox(width: 4),
+                          // Logo Oficial de Lorivery
+                          Image.asset(
+                            'assets/images/logo.png',
+                            height: 24,
+                            fit: BoxFit.contain,
+                          ),
                         ],
                       ),
 

@@ -4,6 +4,8 @@ import 'package:chatbox/theme/app_theme.dart';
 import 'package:chatbox/services/features/auth/presentation/screens/auth_screen.dart';
 import 'package:chatbox/core/config/api_config.dart';
 
+import 'package:chatbox/services/features/splash/splash_screen.dart';
+
 /// Entry point para la App del REPARTIDOR
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +28,7 @@ class LoricaRepartidorApp extends StatelessWidget {
     return MaterialApp(
       title: 'Lorica Repartidor',
       theme: AppTheme.courierTheme,
-      home: const AuthScreen(),
+      home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

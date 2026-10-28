@@ -376,7 +376,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with SingleTickerProvid
                   // Banner Header con Gradiente Premium
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.85)],
@@ -388,34 +388,35 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with SingleTickerProvid
                     child: Column(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            isCourierApp ? Icons.two_wheeler_rounded : Icons.electric_moped_rounded,
-                            size: 38,
                             color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              )
+                            ],
+                          ),
+                          child: Hero(
+                            tag: 'app_logo',
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              height: 38,
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          isCourierApp ? 'LORIVERY REPARTIDORES' : 'LORIVERY',
+                          isCourierApp ? 'PORTAL REPARTIDORES' : 'ENTREGAS EN LORICA',
                           style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          isCourierApp ? 'Portal de domiciliarios autorizados' : 'Domicilios rápidos en todo Lorica',
-                          style: const TextStyle(
-                            color: Colors.white70,
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
                           ),
                         ),
                       ],
